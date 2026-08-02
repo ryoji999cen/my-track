@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>今日の成績表</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="成績表">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#F2F2F7">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23007AFF'/%3E%3Cstop offset='1' stop-color='%235856D6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23g)'/%3E%3Ctext x='50' y='63' font-family='-apple-system,sans-serif' font-size='36' font-weight='800' fill='white' text-anchor='middle'%3E点%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23007AFF'/%3E%3Cstop offset='1' stop-color='%235856D6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23g)'/%3E%3Ctext x='50' y='63' font-family='-apple-system,sans-serif' font-size='36' font-weight='800' fill='white' text-anchor='middle'%3E点%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F2F2F7; --card:#FFFFFF; --ink:#1C1C1E; --ink-soft:#8A8A8E;
+    --navy:#007AFF; --navy-line:rgba(60,60,67,0.13);
+    --hanko:#FF3B30; --gold:#FF9F0A; --ok:#34C759;
+    --font-display:-apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    --font-body:-apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    --font-mono:'SF Mono', 'JetBrains Mono', monospace;
+    --radius:16px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-body);
+    min-height:100vh; padding:0 14px 60px;
+  }
+  body.compact .card{padding:12px; margin-bottom:10px;}
+  .sheet{max-width:640px; margin:0 auto; position:relative;}
+
+  header{
+    position:sticky; top:0; z-index:20; margin:0 -14px 12px; padding:14px 14px 12px;
+    background:rgba(242,242,247,0.82); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .eyebrow{font-family:var(--font-mono); font-size:10.5px; letter-spacing:0.14em; color:var(--ink-soft); margin-bottom:2px;}
+  h1{font-family:var(--font-display); font-weight:800; font-size:26px; margin:0; letter-spacing:-0.01em;}
+  .date-badge{font-family:var(--font-mono); font-size:12px; text-align:right; color:var(--ink-soft);}
+  .date-badge input{
+    font-family:var(--font-mono); border:none; background:var(--card); padding:6px 10px;
+    border-radius:10px; color:var(--ink); margin-top:5px; box-shadow:0 1px 2px rgba(0,0,0,0.06);
+  }
+
+  /* level badge */
+  .level-badge{
+    display:flex; align-items:center; gap:12px; padding:14px 16px; margin-bottom:10px;
+    border-radius:var(--radius); background:var(--card); box-shadow:0 1px 2px rgba(0,0,0,0.04),0 6px 18px rgba(0,0,0,0.05);
+    transition:all .3s;
+  }
+  .level-badge .lv-icon{
+    font-size:22px; line-height:1; width:44px; height:44px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0;
+  }
+  .level-badge .lv-info{flex:1; min-width:0;}
+  .level-badge .lv-num{font-family:var(--font-display); font-weight:800; font-size:16px;}
+  .level-badge .lv-tier{font-family:var(--font-mono); font-size:10.5px; color:var(--ink-soft); margin-left:5px;}
+  .level-badge .lv-bar-track{height:6px; background:rgba(60,60,67,0.1); border-radius:3px; overflow:hidden; margin-top:6px;}
+  .level-badge .lv-bar-fill{height:100%; border-radius:3px; transition:width .4s;}
+  .level-badge .lv-sub{font-family:var(--font-mono); font-size:10px; color:var(--ink-soft); margin-top:3px;}
+  .level-badge.tier-white .lv-icon{background:#8A8A8E;} .level-badge.tier-white .lv-bar-fill{background:#8A8A8E;}
+  .level-badge.tier-pink .lv-icon{background:linear-gradient(135deg,#FF6B9A,#FF3B7A);} .level-badge.tier-pink .lv-bar-fill{background:#FF3B7A;}
+  .level-badge.tier-orange .lv-icon{background:linear-gradient(135deg,#FFB340,#FF9500);} .level-badge.tier-orange .lv-bar-fill{background:#FF9500;}
+  .level-badge.tier-blue .lv-icon{background:linear-gradient(135deg,#5AC8FA,#007AFF);} .level-badge.tier-blue .lv-bar-fill{background:#007AFF;}
+  .level-badge.tier-red{box-shadow:0 1px 2px rgba(0,0,0,0.04),0 6px 22px rgba(255,59,48,0.25);}
+  .level-badge.tier-red .lv-icon{background:linear-gradient(135deg,#FF6B6B,#FF3B30,#FF9F0A);}
+  .level-badge.tier-red .lv-bar-fill{background:linear-gradient(90deg,#FF3B30,#FF9F0A);}
+
+  .streak-badge{
+    font-family:var(--font-mono); font-size:11.5px; color:var(--gold); font-weight:700;
+    text-align:right; margin-bottom:6px; letter-spacing:0.02em;
+  }
+  .study-streak-badge{
+    font-family:var(--font-mono); font-size:11.5px; color:var(--navy); font-weight:700;
+    text-align:right; margin-bottom:12px; letter-spacing:0.02em;
+  }
+
+  .tabs{display:flex; background:#E5E5EA; border-radius:12px; padding:3px; margin-bottom:16px; gap:2px;}
+  .tab-btn{
+    flex:1; font-family:var(--font-display); font-size:12.5px; font-weight:600;
+    background:transparent; border:none; padding:9px 4px; cursor:pointer; color:var(--ink-soft);
+    border-radius:9px; transition:background .2s, color .2s, box-shadow .2s;
+  }
+  .tab-btn.active{background:#fff; color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,0.12);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .card{
+    background:var(--card); border:none; border-radius:var(--radius); padding:18px; margin-bottom:14px; position:relative;
+    box-shadow:0 1px 2px rgba(0,0,0,0.04), 0 4px 14px rgba(0,0,0,0.035);
+  }
+  .card h2{font-family:var(--font-display); font-size:15px; font-weight:700; margin:0 0 12px; display:flex; align-items:baseline; justify-content:space-between; gap:8px;}
+  .card h2 .cat-score{font-family:var(--font-mono); font-size:11.5px; color:var(--navy); font-weight:600;}
+  .row{display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:10px;}
+  .row:last-child{margin-bottom:0;}
+  label{font-size:14px; color:var(--ink);}
+  .hint{font-size:11.5px; color:var(--ink-soft); margin-top:8px; line-height:1.5;}
+  input[type=number], input[type=time], input[type=text]{
+    font-family:var(--font-mono); font-size:14px; padding:7px 10px;
+    border:none; border-radius:9px; background:var(--paper); color:var(--ink); text-align:right;
+  }
+  input[type=number]{width:80px;} input[type=time]{width:104px;} input[type=text]{text-align:left; width:100%;}
+  input[type=color]{width:44px; height:32px; border:none; border-radius:8px; padding:0; background:var(--paper);}
+  select{font-family:var(--font-body); font-size:13px; padding:7px 10px; border:none; border-radius:9px; background:var(--paper); color:var(--ink);}
+  .unit{font-size:12px; color:var(--ink-soft); margin-left:4px;}
+  textarea{
+    width:100%; font-family:var(--font-body); font-size:14.5px; padding:12px;
+    border:none; border-radius:12px; background:var(--paper); color:var(--ink); resize:vertical; min-height:90px;
+  }
+
+  /* disclosure (optional settings) */
+  .disclosure-header{
+    width:100%; display:flex; justify-content:space-between; align-items:center; background:none; border:none;
+    font-family:var(--font-display); font-size:14px; font-weight:700; color:var(--ink); cursor:pointer; padding:0;
+  }
+  .chevron{color:var(--ink-soft); font-size:13px; transition:transform .2s;}
+  .disclosure-body{margin-top:14px;}
+
+  .sub-h{font-family:var(--font-mono); font-size:10.5px; color:var(--navy); letter-spacing:0.08em; margin:14px 0 6px; font-weight:700;}
+  .sub-h:first-child{margin-top:0;}
+
+  /* iOS toggle switch */
+  .check-item{display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none; margin-bottom:10px;}
+  .check-item:last-child{margin-bottom:0;}
+  .check-item input{display:none;}
+  .switch{position:relative; width:46px; height:27px; border-radius:14px; background:#E5E5EA; flex-shrink:0; transition:background .2s;}
+  .switch::after{content:""; position:absolute; top:2px; left:2px; width:23px; height:23px; border-radius:50%; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.2); transition:transform .2s;}
+  .check-item input:checked + .switch{background:var(--ok);}
+  .check-item input:checked + .switch::after{transform:translateX(19px);}
+  .check-item .pt{margin-left:auto; font-family:var(--font-mono); font-size:11px; color:var(--ink-soft);}
+
+  /* wheel picker */
+  .wheel-outer{position:relative; height:170px; overflow:hidden; border-radius:12px; background:var(--paper); margin-bottom:6px;}
+  .wheel-scroll{height:100%; overflow-y:scroll; scroll-snap-type:y mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none;}
+  .wheel-scroll::-webkit-scrollbar{display:none;}
+  .wheel-item{height:34px; display:flex; align-items:center; justify-content:center; scroll-snap-align:center; font-family:var(--font-mono); font-size:17px; color:var(--ink-soft); opacity:0.4; transition:opacity .1s;}
+  .wheel-item.center{color:var(--ink); font-weight:700; font-size:19px; opacity:1;}
+  .wheel-highlight-bar{position:absolute; top:50%; left:10px; right:10px; height:34px; transform:translateY(-50%); border-top:1px solid var(--navy-line); border-bottom:1px solid var(--navy-line); pointer-events:none; background:rgba(0,122,255,0.06); border-radius:8px;}
+  .wheel-value-label{text-align:center; font-family:var(--font-mono); font-size:12px; color:var(--ink-soft); margin-bottom:8px;}
+  .wheel-outer.locked{opacity:0.5; pointer-events:none;}
+  .wheel-outer.locked::after{
+    content:"🔒 厳しめモード中"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-mono); font-size:11px; color:var(--ink-soft); font-weight:700;
+    background:rgba(242,242,247,0.55); border-radius:12px;
+  }
+  input[type=time]:disabled{opacity:0.5; background:rgba(60,60,67,0.06);}
+
+  .calc-btn{width:100%; padding:15px; font-family:var(--font-display); font-weight:700; font-size:16px; letter-spacing:0.01em; background:linear-gradient(135deg,#007AFF,#5856D6); color:#fff; border:none; border-radius:14px; cursor:pointer; margin-bottom:10px; box-shadow:0 6px 16px rgba(0,122,255,0.3);}
+  .calc-btn:active{transform:scale(0.98);}
+  .cancel-btn{width:100%; padding:12px; font-family:var(--font-display); font-weight:600; font-size:13.5px; background:transparent; color:var(--hanko); border:none; border-radius:12px; cursor:pointer; margin-bottom:16px; display:none;}
+  .save-note{font-size:11px; color:var(--ok); text-align:center; margin-top:-4px; margin-bottom:14px; min-height:14px; font-weight:600;}
+
+  .result{position:relative; border:none; background:var(--card); border-radius:20px; padding:26px 22px; margin-bottom:16px; display:none; box-shadow:0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);}
+  .result.show{display:block;}
+  .score-line{display:flex; align-items:baseline; gap:10px;}
+  .score-num{font-family:var(--font-display); font-size:44px; font-weight:800; line-height:1; letter-spacing:-0.02em;}
+  .score-max{font-size:14px; color:var(--ink-soft); font-weight:600;}
+  .rank-comment{font-size:13.5px; color:var(--ink-soft); margin-top:6px; font-weight:500;}
+  .diff-text{font-family:var(--font-mono); font-size:12px; font-weight:700; margin-left:4px;}
+  .diff-up{color:var(--ok);} .diff-down{color:var(--hanko);} .diff-flat{color:var(--ink-soft);}
+  .xp-gain{font-family:var(--font-mono); font-size:11.5px; color:var(--gold); margin-top:8px; font-weight:700;}
+  .breakdown{margin-top:18px; display:grid; grid-template-columns:1fr auto auto; row-gap:9px; column-gap:10px; font-family:var(--font-mono); font-size:12.5px; color:var(--ink-soft); font-weight:500;}
+  .breakdown .v{color:var(--ink); text-align:right; font-weight:700;}
+  .breakdown .r{color:var(--navy); font-weight:800; text-align:right;}
+
+  .hanko{
+    position:absolute; top:18px; right:18px; width:72px; height:72px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; color:#fff;
+    font-family:var(--font-display); font-weight:800; font-size:24px;
+    opacity:0; transform:scale(0.3);
+  }
+  .hanko.stamp{animation:badgePop .5s cubic-bezier(.34,1.56,.64,1) forwards;}
+  @keyframes badgePop{0%{transform:scale(.3);opacity:0;}60%{transform:scale(1.12);opacity:1;}100%{transform:scale(1);opacity:1;}}
+
+  .todo-add{display:flex; gap:8px; margin-bottom:14px;}
+  .todo-add button{font-family:var(--font-display); font-weight:700; padding:9px 18px; background:var(--navy); color:#fff; border:none; border-radius:12px; cursor:pointer;}
+  .todo-list{display:flex; flex-direction:column; gap:8px;}
+  .todo-item{display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--paper); border-radius:12px;}
+  .todo-item span{flex:1; font-size:14px;}
+  .todo-item.done span{text-decoration:line-through; color:var(--ink-soft);}
+  .todo-item button{background:none; border:none; color:var(--hanko); cursor:pointer; font-size:15px; line-height:1;}
+  .todo-item .todo-up, .todo-item .todo-down{color:var(--ink-soft); font-size:11px; padding:4px;}
+  .todo-item .todo-up:disabled, .todo-item .todo-down:disabled{opacity:0.25; cursor:default;}
+  .todo-summary{margin-top:12px; font-size:12px; color:var(--ink-soft); font-family:var(--font-mono);}
+
+  /* goals */
+  .goal-row{display:flex; align-items:center; gap:8px; margin-bottom:9px;}
+  .goal-row:last-child{margin-bottom:0;}
+  .goal-text{flex:1; text-align:left; font-family:var(--font-body); font-size:13.5px;}
+  .goal-row .switch{flex-shrink:0;}
+  .goal-remove{background:none; border:none; color:var(--hanko); cursor:pointer; font-size:15px; line-height:1; flex-shrink:0;}
+  .goal-add{width:100%; padding:10px; margin-top:6px; font-family:var(--font-mono); font-weight:700; font-size:12px; border:1px dashed var(--navy-line); background:none; color:var(--navy); border-radius:10px; cursor:pointer;}
+  .goal-history{margin-top:4px;}
+  .goal-hist-row{display:flex; align-items:center; gap:8px; padding:8px 0; border-top:1px solid var(--navy-line); font-size:12.5px;}
+  .goal-hist-row:first-child{border-top:none;}
+  .goal-hist-text{flex:1; color:var(--ink-soft); text-decoration:line-through;}
+  .goal-hist-date{font-family:var(--font-mono); font-size:10.5px; color:var(--ink-soft); flex-shrink:0;}
+  .goal-undo{background:none; border:none; color:var(--navy); font-family:var(--font-mono); font-size:10.5px; font-weight:700; cursor:pointer; flex-shrink:0;}
+
+  .diary-save{margin-top:12px; font-family:var(--font-display); font-weight:700; padding:11px 20px; background:var(--navy); color:#fff; border:none; border-radius:12px; cursor:pointer;}
+
+  .report-toggle{display:flex; gap:8px; margin-bottom:16px; background:#E5E5EA; border-radius:12px; padding:3px;}
+  .report-toggle button{flex:1; padding:9px; font-family:var(--font-display); font-weight:700; font-size:13px; border:none; background:transparent; color:var(--ink-soft); border-radius:9px; cursor:pointer;}
+  .report-toggle button.active{background:#fff; color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,0.12);}
+  .export-btn{width:100%; padding:12px; font-family:var(--font-mono); font-weight:700; font-size:12px; border:none; background:var(--card); color:var(--navy); border-radius:12px; cursor:pointer; margin-bottom:12px; letter-spacing:0.03em; box-shadow:0 1px 2px rgba(0,0,0,0.04);}
+  .ai-btn{width:100%; padding:14px; font-family:var(--font-display); font-weight:700; font-size:14.5px; background:linear-gradient(135deg,#5856D6,#AF52DE); color:#fff; border:none; border-radius:14px; cursor:pointer; margin-bottom:12px; box-shadow:0 6px 16px rgba(88,86,214,0.3);}
+  .ai-btn:disabled{opacity:0.6; cursor:default;}
+  #aiReportBody{display:none; margin-bottom:14px;}
+  #aiReportBody h2{font-family:var(--font-display); font-size:15px; margin:0 0 10px; color:var(--navy);}
+  #aiReportBody .ai-text{font-size:14px; line-height:1.75; white-space:pre-wrap;}
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;}
+  .stat-box{background:var(--card); border-radius:14px; padding:14px; box-shadow:0 1px 2px rgba(0,0,0,0.04);}
+  .stat-box .l{font-size:11px; color:var(--ink-soft); font-family:var(--font-mono);}
+  .stat-box .v{font-family:var(--font-display); font-size:21px; font-weight:800; color:var(--ink); margin-top:3px;}
+  .hist-row{display:grid; grid-template-columns:78px 1fr 40px; align-items:center; gap:10px; padding:8px 0; font-family:var(--font-mono); font-size:12px;}
+  .hist-row .d{color:var(--ink-soft);}
+  .bar-track{height:7px; background:rgba(60,60,67,0.08); border-radius:4px; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:4px;}
+  .hist-row .s{text-align:right; font-weight:700;}
+  .empty{font-size:13px; color:var(--ink-soft); padding:12px 0;}
+  .study-log{margin-top:6px;}
+  .study-log-item{padding:9px 0; border-top:1px solid var(--navy-line); font-size:13px;}
+  .study-log-item:first-child{border-top:none;}
+  .study-log-item .d{font-family:var(--font-mono); font-size:11px; color:var(--navy); margin-bottom:2px; font-weight:700;}
+  .chart-card{margin-bottom:14px;}
+  .chart-card .label{font-family:var(--font-mono); font-size:11px; color:var(--ink-soft); margin-bottom:5px; display:flex; justify-content:space-between; font-weight:600;}
+  .chart-svg{width:100%; height:78px; display:block; background:var(--card); border-radius:12px; box-shadow:0 1px 2px rgba(0,0,0,0.04);}
+  footer{text-align:center; font-size:10.5px; color:var(--ink-soft); margin-top:20px; font-family:var(--font-mono);}
+  .reset-btn{font-family:var(--font-mono); font-size:11px; background:var(--card); border:none; color:var(--ink-soft); padding:10px 14px; border-radius:10px; cursor:pointer; margin-top:6px; box-shadow:0 1px 2px rgba(0,0,0,0.04);}
+
+  /* calendar */
+  .cal-nav{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .cal-nav button{width:34px; height:34px; border-radius:50%; border:none; background:var(--paper); color:var(--navy); font-size:18px; font-weight:700; cursor:pointer;}
+  .cal-month-label{font-family:var(--font-display); font-weight:800; font-size:15px;}
+  .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:5px;}
+  .cal-dow{font-family:var(--font-mono); font-size:10px; color:var(--ink-soft); text-align:center; padding-bottom:4px; font-weight:700;}
+  .cal-day{aspect-ratio:1; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:10.5px; cursor:pointer; background:var(--paper); color:var(--ink-soft); border:none; position:relative;}
+  .cal-day .num{font-size:10px; opacity:0.85;}
+  .cal-day .rank{font-family:var(--font-display); font-weight:800; font-size:13px; margin-top:1px; line-height:1;}
+  .cal-day.scored{color:#fff;}
+  .cal-day.today{box-shadow:0 0 0 2px var(--navy) inset;}
+  .cal-day.empty{visibility:hidden; cursor:default;}
+  .cal-legend{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; font-family:var(--font-mono); font-size:10px; color:var(--ink-soft);}
+  .cal-legend span{display:inline-flex; align-items:center; gap:4px;}
+  .cal-legend i{width:9px; height:9px; border-radius:3px; display:inline-block;}
+  .cal-day.rank-ss, .cal-day.rank-s, .cal-day.rank-a{position:relative; overflow:hidden;}
+  .cal-day.rank-ss{box-shadow:0 3px 12px rgba(255,159,10,0.55);}
+  .cal-day.rank-s{box-shadow:0 3px 10px rgba(88,86,214,0.4);}
+  .cal-day.rank-a{box-shadow:0 2px 8px rgba(52,199,89,0.35);}
+  .cal-day.rank-ss::before, .cal-day.rank-s::before, .cal-day.rank-a::before{
+    content:""; position:absolute; top:-60%; left:-70%; width:35%; height:220%;
+    background:linear-gradient(120deg, transparent, rgba(255,255,255,0.75), transparent);
+    transform:rotate(20deg); animation:calShine 3s ease-in-out infinite;
+  }
+  .cal-day.rank-ss::after{
+    content:"✨"; position:absolute; top:1px; right:2px; font-size:8px; line-height:1;
+  }
+  @keyframes calShine{
+    0%{left:-70%;} 45%{left:130%;} 100%{left:130%;}
+  }
+
+  /* titles */
+  .title-card{display:flex; gap:12px; align-items:center; padding:12px 0; border-top:1px solid var(--navy-line);}
+  .title-card:first-of-type{border-top:none;}
+  .title-badge{width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#fff; font-family:var(--font-display); font-weight:800; font-size:12.5px; flex-shrink:0;}
+  .title-name{font-family:var(--font-display); font-weight:700; font-size:14px;}
+  .title-card.locked .title-name{color:var(--ink-soft);}
+  .title-desc{font-size:11.5px; color:var(--ink-soft); margin-top:2px; line-height:1.4;}
+  .title-prog{font-family:var(--font-mono); font-size:11px; color:var(--navy); margin-top:3px; font-weight:700;}
+  .title-card.locked .title-prog{color:var(--ink-soft);}
+
+  /* strict mode screenshots */
+  .shot-row{margin-bottom:12px;}
+  .shot-row:last-of-type{margin-bottom:0;}
+  .shot-label{display:block; font-size:12.5px; color:var(--ink-soft); margin-bottom:5px; font-weight:600;}
+  .shot-row input[type=file]{width:100%; font-size:12px; font-family:var(--font-body); padding:8px; border-radius:10px; background:var(--paper); border:1px dashed var(--navy-line); color:var(--ink-soft);}
+  .shot-status{display:block; font-family:var(--font-mono); font-size:11px; color:var(--ok); margin-top:4px; font-weight:700;}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header>
+    <div>
+      <div class="eyebrow">DAILY REPORT</div>
+      <h1>今日の成績表</h1>
+    </div>
+    <div class="date-badge">日付<input type="date" id="dateInput"></div>
+  </header>
+
+  <div class="level-badge tier-white" id="levelBadge"></div>
+  <div class="streak-badge" id="streakBadge"></div>
+  <div class="study-streak-badge" id="studyStreakBadge"></div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="record">記録</button>
+    <button class="tab-btn" data-tab="study">勉強</button>
+    <button class="tab-btn" data-tab="todo">Todo</button>
+    <button class="tab-btn" data-tab="diary">日記</button>
+    <button class="tab-btn" data-tab="goals">目標</button>
+    <button class="tab-btn" data-tab="calendar">カレンダー</button>
+    <button class="tab-btn" data-tab="options">⚙️</button>
+  </div>
+
+  <!-- RECORD TAB -->
+  <div class="tab-panel active" id="panel-record">
+
+    <div class="card" id="strictCard" style="display:none;">
+      <h2>📸 スクリーンショットから記録</h2>
+      <div class="shot-row">
+        <label class="shot-label" for="ss_study">勉強時間アプリのスクショ</label>
+        <input type="file" accept="image/*" id="ss_study">
+        <span class="shot-status" id="ss_study_status"></span>
+      </div>
+      <div class="shot-row">
+        <label class="shot-label" for="ss_wake">起床時間のスクショ</label>
+        <input type="file" accept="image/*" id="ss_wake">
+        <span class="shot-status" id="ss_wake_status"></span>
+      </div>
+      <div class="shot-row">
+        <label class="shot-label" for="ss_sns">スクリーンタイムのスクショ</label>
+        <input type="file" accept="image/*" id="ss_sns">
+        <span class="shot-status" id="ss_sns_status"></span>
+      </div>
+      <button class="ai-btn" id="ssReadBtn" style="margin-top:10px;">🤖 AIに読み取らせる</button>
+      <div class="hint" id="ssResultHint"></div>
+    </div>
+
+    <div class="card">
+      <h2>睡眠 <span class="cat-score" id="cs-sleep">— / 100</span></h2>
+      <div class="row"><label>起床時刻</label><div><input type="time" id="wake"></div></div>
+      <div class="wheel-value-label" id="sleep-label" style="margin-top:12px;">0時間</div>
+      <div class="wheel-outer" id="wheel-sleep"></div>
+      <div class="hint" id="sleepHint">30分ズレるごとにそれぞれ10点減点（各50点）。</div>
+    </div>
+
+    <div class="card">
+      <h2>スマホ <span class="cat-score" id="cs-phone">— / 100</span></h2>
+      <div class="wheel-value-label" id="sns-label">0分</div>
+      <div class="wheel-outer" id="wheel-sns"></div>
+      <div class="hint" id="phoneHint">上限未満なら満点。以降15分ごとに2.5点減点。</div>
+    </div>
+
+    <div class="card">
+      <h2>生活 <span class="cat-score" id="cs-life">— / 100</span></h2>
+      <div class="sub-h">朝</div>
+      <label class="check-item"><input type="checkbox" id="life_m_teeth"><span class="switch"></span>歯磨き<span class="pt">20</span></label>
+      <label class="check-item"><input type="checkbox" id="life_m_supp"><span class="switch"></span>サプリ<span class="pt">5</span></label>
+      <label class="check-item"><input type="checkbox" id="life_m_wash"><span class="switch"></span>洗顔<span class="pt">5</span></label>
+      <label class="check-item"><input type="checkbox" id="life_m_skin"><span class="switch"></span>スキンケア<span class="pt">5</span></label>
+      <label class="check-item"><input type="checkbox" id="life_m_med"><span class="switch"></span>服薬<span class="pt">5</span></label>
+      <div class="sub-h">昼</div>
+      <label class="check-item"><input type="checkbox" id="life_n_med"><span class="switch"></span>服薬<span class="pt">5</span></label>
+      <div class="sub-h">夜</div>
+      <label class="check-item"><input type="checkbox" id="life_e_teeth"><span class="switch"></span>歯磨き<span class="pt">20</span></label>
+      <label class="check-item"><input type="checkbox" id="life_e_floss"><span class="switch"></span>フロス<span class="pt">5</span></label>
+      <label class="check-item"><input type="checkbox" id="life_e_med"><span class="switch"></span>服薬<span class="pt">5</span></label>
+      <label class="check-item"><input type="checkbox" id="life_e_supp"><span class="switch"></span>サプリ<span class="pt">5</span></label>
+      <label class="check-item"><input type="checkbox" id="life_e_bath"><span class="switch"></span>風呂<span class="pt">10</span></label>
+      <label class="check-item"><input type="checkbox" id="life_e_wash"><span class="switch"></span>洗顔<span class="pt">5</span></label>
+      <label class="check-item"><input type="checkbox" id="life_e_skin"><span class="switch"></span>スキンケア<span class="pt">5</span></label>
+    </div>
+
+    <div class="card">
+      <h2>自己管理 <span class="cat-score" id="cs-self">— / 100</span></h2>
+      <label class="check-item"><input type="checkbox" id="sm_late"><span class="switch"></span>遅刻・欠席なし<span class="pt">20</span></label>
+      <label class="check-item"><input type="checkbox" id="sm_forgot"><span class="switch"></span>忘れ物なし<span class="pt">15</span></label>
+      <div class="hint">「タスクを立てる(10点)」はTodoを5個以上作った日に加算、「タスクを全て達成(40点)」は5個以上のTodoを全て完了した日に加算されます（Todoタブの内容から自動判定）。「日記を書く(15点)」は日記タブの内容から自動判定されます。</div>
+    </div>
+
+    <button class="calc-btn" id="calcBtn">採点する</button>
+    <button class="cancel-btn" id="cancelBtn">この採点を取り消す</button>
+    <div class="save-note" id="saveNote"></div>
+
+    <div class="result" id="result">
+      <div class="hanko" id="hanko"></div>
+      <div class="score-line"><div class="score-num" id="scoreNum">0</div><div class="score-max">/ 500点</div></div>
+      <div class="rank-comment" id="rankComment"></div>
+      <div class="xp-gain" id="xpGain"></div>
+      <div class="breakdown" id="breakdown"></div>
+    </div>
+  </div>
+
+  <!-- STUDY TAB -->
+  <div class="tab-panel" id="panel-study">
+    <div class="card">
+      <h2>勉強 <span class="cat-score" id="cs-study">— / 100</span></h2>
+      <div class="wheel-value-label" id="study-label">0分</div>
+      <div class="wheel-outer" id="wheel-study"></div>
+      <div class="hint">15分ごとに2.5点。600分(10h)で満点。</div>
+      <div class="sub-h">学習内容メモ</div>
+      <textarea id="studyContent" placeholder="今日やった範囲・単元をメモ"></textarea>
+    </div>
+  </div>
+
+  <!-- TODO TAB -->
+  <div class="tab-panel" id="panel-todo">
+    <div class="card">
+      <h2>今日のTodo</h2>
+      <div class="hint" style="margin-bottom:12px;">5個以上作ると自己管理「タスクを立てる」10点、5個以上を全て完了すると「タスクを全て達成」40点の対象になります。</div>
+      <div class="todo-add">
+        <input type="text" id="todoInput" placeholder="タスクを入力">
+        <button id="todoAddBtn">追加</button>
+      </div>
+      <div class="todo-list" id="todoList"></div>
+      <div class="todo-summary" id="todoSummary"></div>
+    </div>
+  </div>
+
+  <!-- DIARY + REPORT TAB -->
+  <div class="tab-panel" id="panel-diary">
+    <div class="card">
+      <h2>今日の日記</h2>
+      <textarea id="diaryText" style="min-height:220px;" placeholder="今日あったこと、感じたことを書く"></textarea>
+      <button class="diary-save" id="diarySaveBtn">保存する</button>
+      <span class="save-note" id="diarySaveNote" style="display:inline-block;margin-left:10px;"></span>
+    </div>
+
+    <div class="sub-h" style="margin-top:20px;">レポート</div>
+    <div class="report-toggle">
+      <button class="active" id="repWeek">週次レポート</button>
+      <button id="repMonth">月次レポート</button>
+    </div>
+    <div class="report-toggle" style="margin-bottom:8px;">
+      <button class="active" id="aiModeDay">日次AIレポート</button>
+      <button id="aiModeWeek">週次AIレポート</button>
+    </div>
+    <button class="ai-btn" id="aiReportBtn">🤖 AIレポートを見る</button>
+    <div class="card" id="aiReportBody"></div>
+    <button class="export-btn" id="exportBtn">⬇ 全記録をCSVでエクスポート</button>
+    <div id="reportBody"><div class="empty">日付を選んでレポートを表示します。</div></div>
+  </div>
+
+  <!-- GOALS TAB -->
+  <div class="tab-panel" id="panel-goals">
+    <div id="goalsBody"></div>
+  </div>
+
+  <!-- CALENDAR TAB -->
+  <div class="tab-panel" id="panel-calendar">
+    <div class="card">
+      <div class="cal-nav">
+        <button id="calPrev">‹</button>
+        <div class="cal-month-label" id="calMonthLabel"></div>
+        <button id="calNext">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-legend" id="calLegend"></div>
+      <div class="hint" style="margin-top:10px;">日付をタップするとその日のTodo・日記・ランクを確認できます。</div>
+    </div>
+    <div class="card" id="calDayDetail" style="display:none;"></div>
+  </div>
+
+  <!-- OPTIONS TAB -->
+  <div class="tab-panel" id="panel-options">
+    <div class="card">
+      <button class="disclosure-header" id="settingsToggle">
+        <span>採点基準の設定</span>
+        <span class="chevron" id="settingsChevron">▾</span>
+      </button>
+      <div class="disclosure-body" id="settingsBody" style="display:none;">
+        <div class="row"><label>睡眠目標</label><div><input type="number" id="set_sleepTarget" step="0.5" min="0"><span class="unit">時間</span></div></div>
+        <div class="row"><label>起床目標</label><div><input type="time" id="set_wakeTarget"></div></div>
+        <div class="row"><label>SNS上限</label><div><input type="number" id="set_snsLimit" step="5" min="0"><span class="unit">分</span></div></div>
+        <div class="hint">睡眠・スマホの採点基準に反映されます（全期間共通）。</div>
+        <div class="sub-h">厳しめモード</div>
+        <label class="check-item"><input type="checkbox" id="set_strictMode"><span class="switch"></span>スクショをAIに読み取らせて記録する<span class="pt"></span></label>
+        <div class="hint">オンにすると、勉強時間・起床時刻・スマホ利用時間を手入力ではなくスクリーンショットからAIが読み取って自動入力します（記録タブに撮影欄が追加されます）。一度オンにすると72時間はオフにできません。</div>
+        <div class="hint" id="strictLockHint" style="color:var(--hanko); font-weight:700;"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <button class="disclosure-header" id="titlesToggle">
+        <span>称号</span>
+        <span class="chevron" id="titlesChevron">▾</span>
+      </button>
+      <div class="disclosure-body" id="titlesSectionBody" style="display:none;">
+        <div id="titlesBody"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <button class="disclosure-header" id="themeToggle">
+        <span>テーマ</span>
+        <span class="chevron" id="themeChevron">▾</span>
+      </button>
+      <div class="disclosure-body" id="themeSectionBody" style="display:none;">
+        <div class="sub-h">色</div>
+        <div class="row"><label>メインカラー</label><input type="color" id="theme_navy"></div>
+        <div class="row"><label>アクセントカラー（バッジ・強調）</label><input type="color" id="theme_hanko"></div>
+        <div class="row"><label>背景トーン</label>
+          <select id="theme_paper">
+            <option value="#F2F2F7">iOSライト（既定）</option>
+            <option value="#FFFFFF">白</option>
+            <option value="#EAF1FB">ソフトブルー</option>
+            <option value="#FCEEF3">ソフトピンク</option>
+          </select>
+        </div>
+        <div class="sub-h">フォント</div>
+        <div class="row"><label>書体</label>
+          <select id="theme_font">
+            <option value="ios">iOS標準（既定）</option>
+            <option value="mincho">明朝×ゴシック</option>
+            <option value="gothic">ゴシックのみ</option>
+            <option value="rounded">丸ゴシック</option>
+            <option value="mono">モノスペース見出し</option>
+          </select>
+        </div>
+        <div class="sub-h">レイアウト</div>
+        <div class="row"><label>密度</label>
+          <select id="theme_density">
+            <option value="comfortable">ゆったり（既定）</option>
+            <option value="compact">コンパクト</option>
+          </select>
+        </div>
+        <button class="reset-btn" id="themeResetBtn">既定のデザインに戻す</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>SCORE LEDGER — 保存データは自分だけに表示されます</footer>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs, documentId } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDNufIRCRpXZh3alV75SaKdZ6gSdanQDXs",
+  authDomain: "my-track-cb926.firebaseapp.com",
+  projectId: "my-track-cb926",
+  storageBucket: "my-track-cb926.firebasestorage.app",
+  messagingSenderId: "404534797650",
+  appId: "1:404534797650:web:edf21b3d82cff15894c68b"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+const COL = 'kv';
+
+// Drop-in replacement for the Claude-artifact window.storage API, backed by Firestore.
+window.storage = {
+  async get(key, shared){
+    const ref = doc(db, COL, key);
+    const snap = await getDoc(ref);
+    if(!snap.exists()) throw new Error('not found: ' + key);
+    return { key, value: snap.data().value, shared: !!shared };
+  },
+  async set(key, value, shared){
+    const ref = doc(db, COL, key);
+    await setDoc(ref, { value, updatedAt: Date.now() });
+    return { key, value, shared: !!shared };
+  },
+  async delete(key, shared){
+    const ref = doc(db, COL, key);
+    await deleteDoc(ref);
+    return { key, deleted: true, shared: !!shared };
+  },
+  async list(prefix, shared){
+    prefix = prefix || '';
+    const col = collection(db, COL);
+    const q = query(col, where(documentId(), '>=', prefix), where(documentId(), '<', prefix + '\uf8ff'));
+    const snap = await getDocs(q);
+    const keys = [];
+    snap.forEach(d => keys.push(d.id));
+    return { keys, prefix, shared: !!shared };
+  }
+};
+
+const $ = id => document.getElementById(id);
+const DIARY_TEMPLATE = '今日の良かったところ:\n反省する点:\n対策:';
+const todayStr = () => new Date().toISOString().slice(0,10);
+const clamp = (v,lo,hi) => Math.max(lo, Math.min(hi, v));
+const root = document.documentElement;
+
+/* ================= WHEEL PICKER ================= */
+function buildWheel(containerId, values, formatFn, initial, onChange, labelEl){
+  const outer = $(containerId);
+  const itemH = 34;
+  let html = `<div class="wheel-scroll" id="${containerId}-scroll">`;
+  values.forEach((v,i) => { html += `<div class="wheel-item" data-i="${i}">${formatFn(v)}</div>`; });
+  html += `</div><div class="wheel-highlight-bar"></div>`;
+  outer.innerHTML = html;
+  const scrollEl = $(containerId+'-scroll');
+  const outerH = outer.clientHeight || 170;
+  const padPx = Math.max(0, (outerH - itemH) / 2);
+  scrollEl.style.paddingTop = padPx + 'px';
+  scrollEl.style.paddingBottom = padPx + 'px';
+
+  let idx = values.indexOf(initial);
+  if(idx<0) idx = 0;
+  if(labelEl) labelEl.textContent = formatFn(values[idx]);
+
+  function updateCenterStyle(){
+    const items = scrollEl.querySelectorAll('.wheel-item[data-i]');
+    const center = scrollEl.scrollTop + outerH/2;
+    items.forEach(el=>{
+      const elCenter = el.offsetTop + itemH/2;
+      const dist = Math.abs(elCenter - center);
+      el.style.opacity = Math.max(0.35, 1 - dist/70);
+      el.classList.toggle('center', dist < itemH/2);
+    });
+  }
+  requestAnimationFrame(()=>{ scrollEl.scrollTop = idx*itemH; updateCenterStyle(); });
+
+  let scrollTimeout;
+  scrollEl.addEventListener('scroll', () => {
+    updateCenterStyle();
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(() => {
+      const i = clamp(Math.round(scrollEl.scrollTop / itemH), 0, values.length-1);
+      scrollEl.scrollTo({top:i*itemH, behavior:'smooth'});
+      if(labelEl) labelEl.textContent = formatFn(values[i]);
+      onChange(values[i]);
+    }, 130);
+  });
+  return {
+    setValue(v){
+      let i = values.indexOf(v); if(i<0) i=0;
+      scrollEl.scrollTop = i*itemH; updateCenterStyle();
+      if(labelEl) labelEl.textContent = formatFn(values[i]);
+    }
+  };
+}
+const STUDY_VALUES = []; for(let m=0;m<=720;m+=15) STUDY_VALUES.push(m);
+const SLEEP_VALUES = []; for(let h=0;h<=12;h+=0.5) SLEEP_VALUES.push(Math.round(h*10)/10);
+const SNS_VALUES = []; for(let m=0;m<=360;m+=15) SNS_VALUES.push(m);
+const fmtStudy = m => `${m}分`;
+const fmtSleep = h => `${h}時間`;
+const fmtSns = m => `${m}分`;
+let wheelValues = { study:0, sleep:0, sns:0 };
+let studyWheel, sleepWheel, snsWheel;
+
+/* ================= THEME ================= */
+function defaultUiSettings(){ return { navy:'#007AFF', hanko:'#FF3B30', paper:'#F2F2F7', font:'ios', density:'comfortable' }; }
+let uiSettings = defaultUiSettings();
+const FONT_PRESETS = {
+  ios:     { display:"-apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif", body:"-apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif" },
+  mincho:  { display:"'Shippori Mincho', serif", body:"'Zen Kaku Gothic New', sans-serif" },
+  gothic:  { display:"'Zen Kaku Gothic New', sans-serif", body:"'Zen Kaku Gothic New', sans-serif" },
+  rounded: { display:"'M PLUS Rounded 1c', sans-serif", body:"'M PLUS Rounded 1c', sans-serif" },
+  mono:    { display:"'JetBrains Mono', monospace", body:"'Zen Kaku Gothic New', sans-serif" }
+};
+function applyUiSettings(s){
+  root.style.setProperty('--navy', s.navy);
+  root.style.setProperty('--hanko', s.hanko);
+  root.style.setProperty('--paper', s.paper);
+  const f = FONT_PRESETS[s.font] || FONT_PRESETS.ios;
+  root.style.setProperty('--font-display', f.display);
+  root.style.setProperty('--font-body', f.body);
+  document.body.classList.toggle('compact', s.density === 'compact');
+}
+function bindUiSettingsToForm(s){
+  $('theme_navy').value = s.navy; $('theme_hanko').value = s.hanko; $('theme_paper').value = s.paper;
+  $('theme_font').value = s.font; $('theme_density').value = s.density;
+}
+async function loadUiSettings(){
+  try{ const r = await window.storage.get('uiSettings', false); if(r && r.value) return { ...defaultUiSettings(), ...JSON.parse(r.value) }; }catch(e){}
+  return defaultUiSettings();
+}
+async function saveUiSettings(s){ try{ await window.storage.set('uiSettings', JSON.stringify(s), false); }catch(e){} }
+['theme_navy','theme_hanko','theme_paper','theme_font','theme_density'].forEach(id=>{
+  $(id).addEventListener('input', async () => {
+    uiSettings = { navy:$('theme_navy').value, hanko:$('theme_hanko').value, paper:$('theme_paper').value, font:$('theme_font').value, density:$('theme_density').value };
+    applyUiSettings(uiSettings);
+    await saveUiSettings(uiSettings);
+  });
+});
+$('themeResetBtn').addEventListener('click', async () => {
+  uiSettings = defaultUiSettings();
+  bindUiSettingsToForm(uiSettings); applyUiSettings(uiSettings);
+  await saveUiSettings(uiSettings);
+});
+
+/* ================= SCORING SETTINGS (collapsible) ================= */
+$('settingsToggle').addEventListener('click', () => {
+  const body = $('settingsBody');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  $('settingsChevron').textContent = open ? '▾' : '▴';
+});
+$('titlesToggle').addEventListener('click', () => {
+  const body = $('titlesSectionBody');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  $('titlesChevron').textContent = open ? '▾' : '▴';
+  if(!open) renderTitles();
+});
+$('themeToggle').addEventListener('click', () => {
+  const body = $('themeSectionBody');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  $('themeChevron').textContent = open ? '▾' : '▴';
+});
+function defaultSettings(){ return { sleepTarget:7, wakeTarget:'06:00', snsLimit:120, strictMode:false, strictModeEnabledAt:null }; }
+let currentSettings = defaultSettings();
+async function loadSettings(){
+  try{ const r = await window.storage.get('settings', false); if(r && r.value) return { ...defaultSettings(), ...JSON.parse(r.value) }; }catch(e){}
+  return defaultSettings();
+}
+async function saveSettings(s){ try{ await window.storage.set('settings', JSON.stringify(s), false); }catch(e){} }
+
+function defaultEntry(date){
+  return {
+    date, study:null, studyContent:'', sleep:null, wake:'', sns:null,
+    life:{ m_teeth:false,m_supp:false,m_wash:false,m_skin:false,m_med:false, n_med:false,
+           e_teeth:false,e_floss:false,e_med:false,e_supp:false,e_bath:false,e_wash:false,e_skin:false },
+    self:{ late:false, forgot:false }, diaryText:'', todos:[], scores:null
+  };
+}
+let currentEntry = defaultEntry(todayStr());
+
+async function loadEntry(date){
+  try{ const r = await window.storage.get('entry:'+date, false); if(r && r.value) return { ...defaultEntry(date), ...JSON.parse(r.value) }; }catch(e){}
+  return defaultEntry(date);
+}
+async function persistEntry(entry){
+  try{ await window.storage.set('entry:'+entry.date, JSON.stringify(entry), false); }catch(e){ console.error('save failed', e); }
+}
+async function loadAllEntries(){
+  try{
+    const list = await window.storage.list('entry:', false);
+    if(!list || !list.keys) return [];
+    const out = [];
+    for(const k of list.keys){ try{ const r = await window.storage.get(k, false); if(r && r.value) out.push(JSON.parse(r.value)); }catch(e){} }
+    out.sort((a,b) => b.date.localeCompare(a.date));
+    return out;
+  }catch(e){ return []; }
+}
+
+/* ================= SCORING ================= */
+function studyScore(mins){ return clamp(((mins||0)/15)*2.5, 0, 100); }
+function sleepScore(hours, wake, settings){
+  const target = settings.sleepTarget ?? 7;
+  const durScore = clamp(50 - 10*(Math.abs((hours||0)-target)/0.5), 0, 50);
+  let wakeScore = 0;
+  if(wake){
+    const [h,m] = wake.split(':').map(Number);
+    const wakeMin = h*60+m;
+    const [th,tm] = (settings.wakeTarget||'06:00').split(':').map(Number);
+    wakeScore = clamp(50 - 10*(Math.abs(wakeMin-(th*60+tm))/30), 0, 50);
+  }
+  return durScore + wakeScore;
+}
+function phoneScore(mins, settings){
+  mins = mins||0; const limit = settings.snsLimit ?? 120;
+  if(mins <= limit) return 100;
+  return clamp(100 - 2.5*((mins-limit)/15), 0, 100);
+}
+const LIFE_POINTS = {m_teeth:20,m_supp:5,m_wash:5,m_skin:5,m_med:5,n_med:5,e_teeth:20,e_floss:5,e_med:5,e_supp:5,e_bath:10,e_wash:5,e_skin:5};
+function lifeScoreOf(life){ let s=0; for(const k in LIFE_POINTS){ if(life[k]) s+=LIFE_POINTS[k]; } return s; }
+function selfScoreOf(entry){
+  const hasTodos = entry.todos.length>=5;
+  const allDone = hasTodos && entry.todos.every(t=>t.done);
+  let s=0; if(hasTodos) s+=10; if(allDone) s+=40; if(entry.self.late) s+=20; if(entry.self.forgot) s+=15;
+  if(entry.diaryText && entry.diaryText.trim().length>0 && entry.diaryText.trim() !== DIARY_TEMPLATE.trim()) s+=15;
+  return s;
+}
+function catRank(score){
+  if(score>=95) return 'SS'; if(score>=90) return 'S'; if(score>=80) return 'A'; if(score>=70) return 'B+';
+  if(score>=60) return 'B'; if(score>=50) return 'C'; if(score>=30) return 'D'; return 'E';
+}
+function overallRank(total){
+  if(total>=450) return {rank:'SS', comment:'超すごい'};
+  if(total>=400) return {rank:'S', comment:'頑張った'};
+  if(total>=350) return {rank:'A', comment:'普通な'};
+  if(total>=300) return {rank:'B', comment:'もうちょい頑張れ'};
+  if(total>=250) return {rank:'C', comment:'ちょっとサボった'};
+  if(total>=150) return {rank:'D', comment:'やる気なし'};
+  return {rank:'E', comment:'今日はほぼ何もできなかった。明日仕切り直そう'};
+}
+function rankColor(rank){
+  switch(rank){
+    case 'SS': return '#FF9F0A'; case 'S': return '#5856D6'; case 'A': return '#34C759';
+    case 'B+': return '#30B0C7'; case 'B': return '#007AFF'; case 'C': return '#FF9500';
+    case 'D': return '#FF6482'; default: return '#FF3B30';
+  }
+}
+function computeAll(entry, settings){
+  const study = studyScore(entry.study);
+  const sleep = sleepScore(entry.sleep, entry.wake, settings);
+  const phone = phoneScore(entry.sns, settings);
+  const life = lifeScoreOf(entry.life);
+  const self = selfScoreOf(entry);
+  const total = Math.round(study+sleep+phone+life+self);
+  return { study:Math.round(study), sleep:Math.round(sleep), phone:Math.round(phone), life, self, total };
+}
+
+/* ================= XP / LEVEL ================= */
+function xpForScore(score){ if(score>=91) return 50; if(score>=81) return 35; if(score>=71) return 20; if(score>=61) return 10; return 0; }
+function dailyXP(scores){ return xpForScore(scores.study)+xpForScore(scores.sleep)+xpForScore(scores.phone)+xpForScore(scores.life)+xpForScore(scores.self); }
+function costForLevel(lv){ if(lv<=10) return 30; if(lv<=20) return 60; if(lv<=30) return 120; if(lv<=40) return 240; if(lv<=50) return 420; return null; }
+function levelFromXP(totalXP){
+  let remaining = totalXP, level = 0;
+  while(level < 50){ const cost = costForLevel(level+1); if(remaining >= cost){ remaining -= cost; level++; } else break; }
+  return { level, remaining, nextCost: costForLevel(level+1) };
+}
+function tierOf(level){
+  if(level<=10) return {name:'白', key:'white'}; if(level<=20) return {name:'ピンク', key:'pink'};
+  if(level<=30) return {name:'オレンジ', key:'orange'}; if(level<=40) return {name:'青', key:'blue'};
+  return {name:'赤', key:'red'};
+}
+function tierIcon(key){ return {white:'○', pink:'✿', orange:'✦', blue:'❖', red:'♛'}[key]; }
+function computeTotalXP(allEntries){ let total=0; for(const e of allEntries){ if(e.scores) total += dailyXP(e.scores); } return total; }
+async function updateLevelBadge(){
+  const all = await loadAllEntries();
+  const totalXP = computeTotalXP(all);
+  const { level, remaining, nextCost } = levelFromXP(totalXP);
+  const tier = tierOf(level);
+  const badge = $('levelBadge');
+  badge.className = 'level-badge tier-' + tier.key;
+  const pct = nextCost ? clamp((remaining/nextCost)*100,0,100) : 100;
+  badge.innerHTML = `
+    <div class="lv-icon">${tierIcon(tier.key)}</div>
+    <div class="lv-info">
+      <div class="lv-num">Lv.${level}<span class="lv-tier">${tier.name}帯</span></div>
+      <div class="lv-bar-track"><div class="lv-bar-fill" style="width:${pct}%"></div></div>
+      <div class="lv-sub">${nextCost ? `${remaining} / ${nextCost} XP（次のLvまで）` : 'MAX LEVEL・累計 ' + totalXP + 'XP'}</div>
+    </div>`;
+  return totalXP;
+}
+
+/* ================= record tab ================= */
+const lifeIds = Object.keys(LIFE_POINTS);
+function resetResultUI(){
+  $('result').classList.remove('show');
+  $('hanko').classList.remove('stamp');
+  $('cancelBtn').style.display = 'none';
+  $('cs-study').textContent='— / 100'; $('cs-sleep').textContent='— / 100';
+  $('cs-phone').textContent='— / 100'; $('cs-life').textContent='— / 100'; $('cs-self').textContent='— / 100';
+}
+function renderResultFromScores(scores, animate){
+  $('cs-study').textContent = `${scores.study} / 100 (${catRank(scores.study)})`;
+  $('cs-sleep').textContent = `${scores.sleep} / 100 (${catRank(scores.sleep)})`;
+  $('cs-phone').textContent = `${scores.phone} / 100 (${catRank(scores.phone)})`;
+  $('cs-life').textContent = `${scores.life} / 100 (${catRank(scores.life)})`;
+  $('cs-self').textContent = `${scores.self} / 100 (${catRank(scores.self)})`;
+  $('scoreNum').textContent = scores.total;
+  const ov = overallRank(scores.total);
+  $('rankComment').innerHTML = `総合ランク ${ov.rank} — ${ov.comment}`;
+  $('breakdown').innerHTML = `
+    <div>勉強</div><div class="v">${scores.study}</div><div class="r">${catRank(scores.study)}</div>
+    <div>睡眠</div><div class="v">${scores.sleep}</div><div class="r">${catRank(scores.sleep)}</div>
+    <div>スマホ</div><div class="v">${scores.phone}</div><div class="r">${catRank(scores.phone)}</div>
+    <div>生活</div><div class="v">${scores.life}</div><div class="r">${catRank(scores.life)}</div>
+    <div>自己管理</div><div class="v">${scores.self}</div><div class="r">${catRank(scores.self)}</div>
+  `;
+  const h = $('hanko');
+  h.style.background = rankColor(ov.rank);
+  h.textContent = ov.rank;
+  h.classList.remove('stamp');
+  if(animate){ void h.offsetWidth; h.classList.add('stamp'); }
+  else { h.style.opacity='1'; h.style.transform='scale(1)'; }
+  $('result').classList.add('show');
+  $('cancelBtn').style.display = 'block';
+  $('xpGain').textContent = '';
+}
+function bindEntryToForm(entry){
+  studyWheel = buildWheel('wheel-study', STUDY_VALUES, fmtStudy, entry.study ?? 0, v => wheelValues.study = v, $('study-label'));
+  sleepWheel = buildWheel('wheel-sleep', SLEEP_VALUES, fmtSleep, entry.sleep ?? 7, v => wheelValues.sleep = v, $('sleep-label'));
+  snsWheel   = buildWheel('wheel-sns', SNS_VALUES, fmtSns, entry.sns ?? 0, v => wheelValues.sns = v, $('sns-label'));
+  wheelValues = { study: entry.study ?? 0, sleep: entry.sleep ?? 7, sns: entry.sns ?? 0 };
+  $('studyContent').value = entry.studyContent ?? '';
+  $('wake').value = entry.wake ?? '';
+  lifeIds.forEach(id => $('life_'+id).checked = !!entry.life[id]);
+  $('sm_late').checked = !!entry.self.late;
+  $('sm_forgot').checked = !!entry.self.forgot;
+  $('diaryText').value = entry.diaryText && entry.diaryText.trim().length>0 ? entry.diaryText : DIARY_TEMPLATE;
+  resetResultUI();
+  if(entry.scores){ renderResultFromScores(entry.scores, false); }
+  renderTodos();
+}
+function readFormIntoEntry(){
+  currentEntry.study = wheelValues.study;
+  currentEntry.studyContent = $('studyContent').value;
+  currentEntry.sleep = wheelValues.sleep;
+  currentEntry.wake = $('wake').value;
+  currentEntry.sns = wheelValues.sns;
+  lifeIds.forEach(id => currentEntry.life[id] = $('life_'+id).checked);
+  currentEntry.self.late = $('sm_late').checked;
+  currentEntry.self.forgot = $('sm_forgot').checked;
+}
+function dateAdd(dateStr, days){ const d = new Date(dateStr+'T00:00:00'); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); }
+async function updateStreakBadge(){
+  const all = await loadAllEntries();
+  const scored = new Set(all.filter(e=>e.scores).map(e=>e.date));
+  const anchor = $('dateInput').value || todayStr();
+  let streak=0, d=anchor;
+  while(scored.has(d)){ streak++; d = dateAdd(d,-1); }
+  $('streakBadge').textContent = streak>0 ? `🔥 ${streak}日連続採点中` : '';
+}
+async function updateStudyStreakBadge(){
+  const all = await loadAllEntries();
+  const map = new Map(all.filter(e=>e.scores).map(e=>[e.date, e]));
+  const anchor = $('dateInput').value || todayStr();
+  let days=0, sumMinutes=0, d=anchor;
+  while(map.has(d)){
+    const e = map.get(d);
+    const mins = e.study || 0;
+    if(mins <= 0) break;
+    days++; sumMinutes += mins; d = dateAdd(d,-1);
+  }
+  if(days>0){
+    const avgHours = (sumMinutes/days/60);
+    $('studyStreakBadge').textContent = `📚 ${days}日間連続勉強中（平均${avgHours.toFixed(1)}時間/日）`;
+  } else {
+    $('studyStreakBadge').textContent = '';
+  }
+}
+
+$('calcBtn').addEventListener('click', async () => {
+  readFormIntoEntry();
+  const scores = computeAll(currentEntry, currentSettings);
+  currentEntry.scores = scores;
+  currentEntry.settingsSnapshot = { ...currentSettings };
+  renderResultFromScores(scores, true);
+
+  const ov = overallRank(scores.total);
+  const prev = await loadEntry(dateAdd(currentEntry.date, -1));
+  let diffHtml = '';
+  if(prev && prev.scores){
+    const diff = scores.total - prev.scores.total;
+    const cls = diff>0 ? 'diff-up' : diff<0 ? 'diff-down' : 'diff-flat';
+    diffHtml = `<span class="diff-text ${cls}">(前日比 ${diff>0?'+':''}${diff})</span>`;
+  }
+  $('rankComment').innerHTML = `総合ランク ${ov.rank} — ${ov.comment} ${diffHtml}`;
+  $('xpGain').textContent = `本日獲得XP: ${dailyXP(scores)}`;
+
+  await persistEntry(currentEntry);
+  $('saveNote').textContent = '保存しました';
+  setTimeout(()=> $('saveNote').textContent='', 1800);
+  await updateStreakBadge(); await updateStudyStreakBadge();
+  await updateLevelBadge();
+});
+
+$('cancelBtn').addEventListener('click', async () => {
+  if(!confirm('この日の採点を取り消しますか？')) return;
+  currentEntry.scores = null;
+  await persistEntry(currentEntry);
+  resetResultUI();
+  await updateStreakBadge(); await updateStudyStreakBadge();
+  await updateLevelBadge();
+});
+
+/* ================= todo tab ================= */
+function renderTodos(){
+  const list = $('todoList');
+  if(!currentEntry.todos.length){
+    list.innerHTML = '<div class="empty">今日のタスクはまだありません。</div>';
+  } else {
+    list.innerHTML = currentEntry.todos.map((t,i) => `
+      <div class="todo-item ${t.done?'done':''}">
+        <label class="check-item" style="margin:0;"><input type="checkbox" data-idx="${i}" class="todo-check" ${t.done?'checked':''}><span class="switch"></span></label>
+        <span>${t.text}</span>
+        <button data-idx="${i}" class="todo-up" ${i===0?'disabled':''}>▲</button>
+        <button data-idx="${i}" class="todo-down" ${i===currentEntry.todos.length-1?'disabled':''}>▼</button>
+        <button data-idx="${i}" class="todo-del">✕</button>
+      </div>`).join('');
+  }
+  const done = currentEntry.todos.filter(t=>t.done).length;
+  $('todoSummary').textContent = currentEntry.todos.length ? `${done} / ${currentEntry.todos.length} 完了` : '';
+}
+$('todoAddBtn').addEventListener('click', async () => {
+  const val = $('todoInput').value.trim();
+  if(!val) return;
+  currentEntry.todos.push({text:val, done:false});
+  $('todoInput').value='';
+  renderTodos();
+  await persistEntry(currentEntry);
+});
+$('todoInput').addEventListener('keydown', e => { if(e.key==='Enter') $('todoAddBtn').click(); });
+$('todoList').addEventListener('click', async (e) => {
+  const idx = Number(e.target.dataset.idx);
+  if(e.target.classList.contains('todo-del')){
+    currentEntry.todos.splice(idx,1);
+    renderTodos(); await persistEntry(currentEntry);
+  } else if(e.target.classList.contains('todo-check')){
+    currentEntry.todos[idx].done = e.target.checked;
+    renderTodos(); await persistEntry(currentEntry);
+  } else if(e.target.classList.contains('todo-up') && idx>0){
+    [currentEntry.todos[idx-1], currentEntry.todos[idx]] = [currentEntry.todos[idx], currentEntry.todos[idx-1]];
+    renderTodos(); await persistEntry(currentEntry);
+  } else if(e.target.classList.contains('todo-down') && idx<currentEntry.todos.length-1){
+    [currentEntry.todos[idx+1], currentEntry.todos[idx]] = [currentEntry.todos[idx], currentEntry.todos[idx+1]];
+    renderTodos(); await persistEntry(currentEntry);
+  }
+});
+
+/* ================= goals tab ================= */
+function genId(){ return 'g' + Math.random().toString(36).slice(2,9); }
+function mkSlots(n){ return Array.from({length:n}, () => ({ id: genId(), text:'', done:false, completedAt:null })); }
+function defaultGoals(){ return { large: mkSlots(3), medium: mkSlots(3), small: mkSlots(3) }; }
+let goalsData = null;
+async function loadGoals(){
+  try{ const r = await window.storage.get('goals', false); if(r && r.value) return { ...defaultGoals(), ...JSON.parse(r.value) }; }catch(e){}
+  return defaultGoals();
+}
+async function saveGoals(){ try{ await window.storage.set('goals', JSON.stringify(goalsData), false); }catch(e){} }
+function escapeAttr(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+const GOAL_META = {
+  large:  { label:'🎯 大きい目標', sub:'半年〜1年以上' },
+  medium: { label:'📅 中くらいの目標', sub:'1〜2ヶ月' },
+  small:  { label:'✅ 小さい目標', sub:'今週中' }
+};
+function renderGoalsTab(){
+  if(!goalsData) return;
+  let html = '';
+  ['large','medium','small'].forEach(cat => {
+    const meta = GOAL_META[cat];
+    const items = goalsData[cat];
+    const active = items.filter(g=>!g.done);
+    const done = items.filter(g=>g.done);
+    html += `<div class="card">
+      <h2>${meta.label}<span class="cat-score">${meta.sub}</span></h2>
+      <div>
+        ${active.map(g => `
+          <div class="goal-row">
+            <input type="text" class="goal-text" data-cat="${cat}" data-id="${g.id}" value="${escapeAttr(g.text)}" placeholder="目標を入力">
+            <label class="check-item" style="margin:0;"><input type="checkbox" class="goal-check" data-cat="${cat}" data-id="${g.id}"><span class="switch"></span></label>
+            <button class="goal-remove" data-cat="${cat}" data-id="${g.id}">✕</button>
+          </div>`).join('')}
+      </div>
+      <button class="goal-add" data-cat="${cat}">＋ 目標を追加</button>
+      ${done.length ? `
+        <div class="sub-h">達成履歴</div>
+        <div class="goal-history">
+          ${done.slice().sort((a,b)=>(b.completedAt||0)-(a.completedAt||0)).map(g => `
+            <div class="goal-hist-row">
+              <span class="goal-hist-text">${escapeHtml(g.text) || '(無題)'}</span>
+              <span class="goal-hist-date">${g.completedAt ? new Date(g.completedAt).toLocaleDateString('ja-JP') : ''}</span>
+              <button class="goal-undo" data-cat="${cat}" data-id="${g.id}">取り消す</button>
+            </div>`).join('')}
+        </div>` : ''}
+    </div>`;
+  });
+  $('goalsBody').innerHTML = html;
+}
+$('goalsBody').addEventListener('click', async (e) => {
+  const cat = e.target.dataset.cat, id = e.target.dataset.id;
+  if(e.target.classList.contains('goal-add')){
+    goalsData[e.target.dataset.cat].push({ id: genId(), text:'', done:false, completedAt:null });
+    await saveGoals(); renderGoalsTab();
+  } else if(e.target.classList.contains('goal-remove')){
+    const item = goalsData[cat].find(g=>g.id===id);
+    if(item && item.text.trim().length>0){ if(!confirm('この目標を削除しますか？')) return; }
+    goalsData[cat] = goalsData[cat].filter(g=>g.id!==id);
+    await saveGoals(); renderGoalsTab();
+  } else if(e.target.classList.contains('goal-undo')){
+    const item = goalsData[cat].find(g=>g.id===id);
+    if(item){ item.done=false; item.completedAt=null; }
+    await saveGoals(); renderGoalsTab();
+  }
+});
+$('goalsBody').addEventListener('change', async (e) => {
+  const cat = e.target.dataset.cat, id = e.target.dataset.id;
+  if(e.target.classList.contains('goal-text')){
+    const item = goalsData[cat].find(g=>g.id===id);
+    if(item) item.text = e.target.value;
+    await saveGoals();
+  } else if(e.target.classList.contains('goal-check')){
+    const item = goalsData[cat].find(g=>g.id===id);
+    if(item && e.target.checked){ item.done = true; item.completedAt = Date.now(); }
+    await saveGoals(); renderGoalsTab();
+  }
+});
+
+/* ================= diary tab ================= */
+$('diarySaveBtn').addEventListener('click', async () => {
+  currentEntry.diaryText = $('diaryText').value;
+  await persistEntry(currentEntry);
+  $('diarySaveNote').textContent = '保存しました';
+  setTimeout(()=> $('diarySaveNote').textContent='', 1800);
+});
+
+/* ================= tabs ================= */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    $('panel-'+btn.dataset.tab).classList.add('active');
+    if(btn.dataset.tab === 'study' && studyWheel) studyWheel.setValue(wheelValues.study);
+    if(btn.dataset.tab === 'diary') renderReport(currentReportMode);
+    if(btn.dataset.tab === 'calendar') renderCalendar();
+    if(btn.dataset.tab === 'options') renderTitles();
+    if(btn.dataset.tab === 'goals') renderGoalsTab();
+  });
+});
+
+/* ================= date change ================= */
+$('dateInput').addEventListener('change', async () => {
+  currentEntry = await loadEntry($('dateInput').value);
+  bindEntryToForm(currentEntry);
+  await updateStreakBadge(); await updateStudyStreakBadge();
+});
+
+/* ================= report tab ================= */
+let currentReportMode = 'week';
+$('repWeek').addEventListener('click', () => { currentReportMode='week'; $('repWeek').classList.add('active'); $('repMonth').classList.remove('active'); renderReport('week'); });
+$('repMonth').addEventListener('click', () => { currentReportMode='month'; $('repMonth').classList.add('active'); $('repWeek').classList.remove('active'); renderReport('month'); });
+
+function svgLineChart(data, color, maxY){
+  const w=300,h=78,pad=8;
+  if(!data.length) return '<div class="empty">データなし</div>';
+  const n=data.length;
+  const stepX = n>1 ? (w-2*pad)/(n-1) : 0;
+  const pts = data.map((v,i)=>{ const x=pad+i*stepX; const y=pad+(1-(clamp(v,0,maxY)/maxY))*(h-2*pad); return {x,y}; });
+  const polyline = pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const circles = pts.map(p=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.4" fill="${color}"/>`).join('');
+  const midY = pad+(h-2*pad)/2;
+  return `<svg viewBox="0 0 ${w} ${h}" class="chart-svg" preserveAspectRatio="none">
+    <line x1="${pad}" y1="${midY}" x2="${w-pad}" y2="${midY}" stroke="rgba(60,60,67,0.12)" stroke-width="1"/>
+    <polyline points="${polyline}" fill="none" stroke="${color}" stroke-width="2.2"/>
+    ${circles}
+  </svg>`;
+}
+
+async function renderReport(mode){
+  const anchor = $('dateInput').value || todayStr();
+  const all = await loadAllEntries();
+  let start, end, label;
+  if(mode === 'week'){ start = dateAdd(anchor, -6); end = anchor; label = `${start} 〜 ${end}`; }
+  else {
+    const d = new Date(anchor+'T00:00:00'); const y=d.getFullYear(), m=d.getMonth();
+    start = new Date(y,m,1).toISOString().slice(0,10); end = new Date(y,m+1,0).toISOString().slice(0,10);
+    label = `${y}年${m+1}月`;
+  }
+  const inRange = all.filter(e => e.date>=start && e.date<=end && e.scores);
+  const body = $('reportBody');
+  if(!inRange.length){ body.innerHTML = `<div class="empty">対象期間（${label}）に採点済みの記録がありません。</div>`; return; }
+  const n = inRange.length;
+  const sum = (f) => inRange.reduce((a,e)=>a+f(e),0);
+  const avgTotal = Math.round(sum(e=>e.scores.total)/n);
+  const avgStudy = Math.round(sum(e=>e.scores.study)/n);
+  const avgSleep = Math.round(sum(e=>e.scores.sleep)/n);
+  const avgPhone = Math.round(sum(e=>e.scores.phone)/n);
+  const avgLife = Math.round(sum(e=>e.scores.life)/n);
+  const avgSelf = Math.round(sum(e=>e.scores.self)/n);
+  const best = inRange.reduce((a,e)=> e.scores.total>a.scores.total?e:a);
+  const worst = inRange.reduce((a,e)=> e.scores.total<a.scores.total?e:a);
+  const ovAvg = overallRank(avgTotal);
+  const asc = inRange.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const studyNotes = inRange.filter(e => e.studyContent && e.studyContent.trim().length>0).slice().sort((a,b)=>b.date.localeCompare(a.date));
+
+  body.innerHTML = `
+    <div class="hint" style="margin-bottom:12px;">対象期間: ${label}（記録 ${n}日分）</div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="l">平均総合点</div><div class="v">${avgTotal} <span style="font-size:12px;">(${ovAvg.rank})</span></div></div>
+      <div class="stat-box"><div class="l">最高点</div><div class="v">${best.scores.total} <span style="font-size:11px;color:var(--ink-soft);">${best.date}</span></div></div>
+      <div class="stat-box"><div class="l">最低点</div><div class="v">${worst.scores.total} <span style="font-size:11px;color:var(--ink-soft);">${worst.date}</span></div></div>
+      <div class="stat-box"><div class="l">記録日数</div><div class="v">${n}</div></div>
+    </div>
+    <div class="breakdown" style="margin-bottom:18px;">
+      <div>勉強 平均</div><div class="v">${avgStudy}</div><div class="r">${catRank(avgStudy)}</div>
+      <div>睡眠 平均</div><div class="v">${avgSleep}</div><div class="r">${catRank(avgSleep)}</div>
+      <div>スマホ 平均</div><div class="v">${avgPhone}</div><div class="r">${catRank(avgPhone)}</div>
+      <div>生活 平均</div><div class="v">${avgLife}</div><div class="r">${catRank(avgLife)}</div>
+      <div>自己管理 平均</div><div class="v">${avgSelf}</div><div class="r">${catRank(avgSelf)}</div>
+    </div>
+    <div class="sub-h">項目別グラフ（0〜100点）</div>
+    <div class="chart-card"><div class="label"><span>勉強</span><span>${asc[0].date} 〜 ${asc[asc.length-1].date}</span></div>${svgLineChart(asc.map(e=>e.scores.study), '#007AFF', 100)}</div>
+    <div class="chart-card"><div class="label"><span>睡眠</span></div>${svgLineChart(asc.map(e=>e.scores.sleep), '#5856D6', 100)}</div>
+    <div class="chart-card"><div class="label"><span>スマホ</span></div>${svgLineChart(asc.map(e=>e.scores.phone), '#FF3B30', 100)}</div>
+    <div class="chart-card"><div class="label"><span>生活</span></div>${svgLineChart(asc.map(e=>e.scores.life), '#34C759', 100)}</div>
+    <div class="chart-card"><div class="label"><span>自己管理</span></div>${svgLineChart(asc.map(e=>e.scores.self), '#FF9F0A', 100)}</div>
+    <div class="chart-card"><div class="label"><span>総合（500点満点を100換算）</span></div>${svgLineChart(asc.map(e=>e.scores.total/5), '#1C1C1E', 100)}</div>
+    <div class="sub-h">日別推移</div>
+    ${inRange.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(e => {
+      const r = overallRank(e.scores.total).rank;
+      return `<div class="hist-row"><div class="d">${e.date} <span style="color:${rankColor(r)}">${r}</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(e.scores.total/500)*100}%;background:${rankColor(r)}"></div></div>
+        <div class="s">${e.scores.total}</div></div>`;
+    }).join('')}
+    <div class="sub-h" style="margin-top:18px;">学習内容メモ まとめ</div>
+    <div class="study-log">${studyNotes.length ? studyNotes.map(e => `<div class="study-log-item"><div class="d">${e.date}</div>${e.studyContent}</div>`).join('') : '<div class="empty">この期間の学習内容メモはありません。</div>'}</div>
+  `;
+}
+
+/* ================= calendar tab ================= */
+let calAnchor = null; // yyyy-mm-01 string representing the viewed month
+function calMonthKey(dateStr){ return dateStr.slice(0,7); } // yyyy-mm
+$('calPrev').addEventListener('click', () => { shiftCalMonth(-1); });
+$('calNext').addEventListener('click', () => { shiftCalMonth(1); });
+function shiftCalMonth(delta){
+  const d = new Date(calAnchor+'T00:00:00');
+  d.setMonth(d.getMonth()+delta);
+  calAnchor = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;
+  renderCalendar();
+}
+function calRankVisual(rank){
+  switch(rank){
+    case 'SS': return { bg:'linear-gradient(135deg, #FFE9A8 0%, #FFD700 35%, #FF9F0A 70%, #FFD700 100%)', cls:'rank-ss' };
+    case 'S':  return { bg:'linear-gradient(135deg, #E0C3FC 0%, #AF52DE 45%, #5856D6 100%)', cls:'rank-s' };
+    case 'A':  return { bg:'linear-gradient(135deg, #B9FBC0 0%, #34C759 55%, #30D158 100%)', cls:'rank-a' };
+    default:   return { bg:rankColor(rank), cls:'' };
+  }
+}
+async function renderCalendar(){
+  $('calDayDetail').style.display = 'none';
+  if(!calAnchor){
+    const base = $('dateInput').value || todayStr();
+    calAnchor = base.slice(0,7)+'-01';
+  }
+  const d = new Date(calAnchor+'T00:00:00');
+  const y = d.getFullYear(), m = d.getMonth();
+  $('calMonthLabel').textContent = `${y}年${m+1}月`;
+
+  const all = await loadAllEntries();
+  const map = new Map(all.filter(e=>e.scores).map(e=>[e.date, e]));
+  const firstDow = new Date(y,m,1).getDay();
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const today = todayStr();
+
+  const dows = ['日','月','火','水','木','金','土'];
+  let html = dows.map(w => `<div class="cal-dow">${w}</div>`).join('');
+  for(let i=0;i<firstDow;i++) html += `<div class="cal-day empty"></div>`;
+  for(let day=1; day<=daysInMonth; day++){
+    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const e = map.get(dateStr);
+    const isToday = dateStr === today;
+    if(e){
+      const r = overallRank(e.scores.total).rank;
+      const v = calRankVisual(r);
+      html += `<button class="cal-day scored ${v.cls} ${isToday?'today':''}" style="background:${v.bg}" data-date="${dateStr}"><span class="num">${day}</span><span class="rank">${r}</span></button>`;
+    } else {
+      html += `<button class="cal-day ${isToday?'today':''}" data-date="${dateStr}"><span class="num">${day}</span></button>`;
+    }
+  }
+  $('calGrid').innerHTML = html;
+  $('calLegend').innerHTML = ['SS','S','A','B+','B','C','D','E'].map(r =>
+    `<span><i style="background:${rankColor(r)}"></i>${r}</span>`).join('');
+
+  $('calGrid').querySelectorAll('.cal-day[data-date]').forEach(el => {
+    el.addEventListener('click', async () => {
+      const dateStr = el.dataset.date;
+      const entry = await loadEntry(dateStr);
+      renderCalDayDetail(dateStr, entry);
+    });
+  });
+}
+function renderCalDayDetail(dateStr, entry){
+  const box = $('calDayDetail');
+  box.style.display = 'block';
+  let rankHtml = '<span class="hint">未採点</span>';
+  if(entry.scores){
+    const r = overallRank(entry.scores.total).rank;
+    rankHtml = `<span style="display:inline-block; padding:3px 10px; border-radius:8px; background:${rankColor(r)}; color:#fff; font-family:var(--font-display); font-weight:800; font-size:12px;">${r} (${entry.scores.total}点)</span>`;
+  }
+  const todosHtml = entry.todos.length
+    ? entry.todos.map(t => `<div style="font-size:13px; padding:4px 0; ${t.done?'color:var(--ink-soft); text-decoration:line-through;':''}">${t.done?'✓':'○'} ${t.text}</div>`).join('')
+    : '<div class="empty">この日のTodoはありません。</div>';
+  const diaryTrimmed = (entry.diaryText||'').trim();
+  const hasDiary = diaryTrimmed.length>0 && diaryTrimmed !== DIARY_TEMPLATE.trim();
+  const diaryHtml = hasDiary
+    ? `<div style="font-size:13px; white-space:pre-wrap; line-height:1.7;">${entry.diaryText.replace(/</g,'&lt;')}</div>`
+    : '<div class="empty">この日の日記はありません。</div>';
+  box.innerHTML = `
+    <h2>${dateStr} ${rankHtml}</h2>
+    <div class="sub-h">Todo</div>
+    ${todosHtml}
+    <div class="sub-h">日記</div>
+    ${diaryHtml}
+    <button class="reset-btn" id="calGoRecord" style="margin-top:14px;">この日を記録タブで編集</button>
+  `;
+  $('calGoRecord').addEventListener('click', async () => {
+    $('dateInput').value = dateStr;
+    currentEntry = await loadEntry(dateStr);
+    bindEntryToForm(currentEntry);
+    await updateStreakBadge(); await updateStudyStreakBadge();
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    document.querySelector('.tab-btn[data-tab="record"]').classList.add('active');
+    $('panel-record').classList.add('active');
+  });
+}
+
+/* ================= titles / achievements ================= */
+function withinMinutes(timeStr, targetStr, tolerance){
+  if(!timeStr || !targetStr) return false;
+  const [h,m] = timeStr.split(':').map(Number);
+  const [th,tm] = targetStr.split(':').map(Number);
+  return Math.abs((h*60+m)-(th*60+tm)) <= tolerance;
+}
+function allDatesBetween(start,end){ const arr=[]; let d=start; while(d<=end){ arr.push(d); d=dateAdd(d,1); } return arr; }
+function maxStreakByCond(datesAsc, entryMap, condFn){
+  if(!datesAsc.length) return 0;
+  const allDates = allDatesBetween(datesAsc[0], datesAsc[datesAsc.length-1]);
+  let max=0, cur=0;
+  for(const d of allDates){
+    const e = entryMap.get(d);
+    if(e && condFn(e)){ cur++; max = Math.max(max,cur); } else { cur = 0; }
+  }
+  return max;
+}
+const ACHIEVEMENTS = [
+  {id:'c1', tier:'C', name:'早起きの第一歩', desc:'起床目標±30分以内を3日連続達成', type:'streak', target:3,
+    cond:e=>withinMinutes(e.wake, (e.settingsSnapshot||currentSettings).wakeTarget, 30)},
+  {id:'c2', tier:'C', name:'スマホ卒業生（仮）', desc:'SNS利用時間が上限以下の日を5日達成', type:'count', target:5,
+    cond:e=> e.sns!=null && e.sns <= (e.settingsSnapshot||currentSettings).snsLimit},
+  {id:'c3', tier:'C', name:'有言実行', desc:'Todoを5個以上立てた日が5日連続', type:'streak', target:5,
+    cond:e=> (e.todos||[]).length>=5},
+
+  {id:'b1', tier:'B', name:'継続は力なり', desc:'採点ストリーク7日達成', type:'streak', target:7, cond:()=>true},
+  {id:'b2', tier:'B', name:'生活の鑑', desc:'生活カテゴリAランク(80点以上)を5日達成', type:'count', target:5,
+    cond:e=>e.scores.life>=80},
+  {id:'b3', tier:'B', name:'積み上げ職人', desc:'勉強カテゴリBランク以上(60点以上)を10日達成', type:'count', target:10,
+    cond:e=>e.scores.study>=60},
+
+  {id:'a1', tier:'A', name:'不動の起床王', desc:'起床目標±15分以内を14日連続', type:'streak', target:14,
+    cond:e=>withinMinutes(e.wake, (e.settingsSnapshot||currentSettings).wakeTarget, 15)},
+  {id:'a2', tier:'A', name:'デジタルミニマリスト', desc:'SNS利用時間が上限の半分以下を10日連続', type:'streak', target:10,
+    cond:e=> e.sns!=null && e.sns <= (e.settingsSnapshot||currentSettings).snsLimit/2},
+  {id:'a3', tier:'A', name:'皆勤賞', desc:'採点ストリーク30日達成', type:'streak', target:30, cond:()=>true},
+
+  {id:'s1', tier:'S', name:'早稲田への道', desc:'総合スコアSランク(400点以上)を7日連続達成', type:'streak', target:7,
+    cond:e=>e.scores.total>=400},
+  {id:'s2', tier:'S', name:'完全無欠', desc:'全カテゴリSSランク(95点以上)を同日に達成', type:'single',
+    cond:e=>e.scores.study>=95 && e.scores.sleep>=95 && e.scores.phone>=95 && e.scores.life>=95 && e.scores.self>=95},
+  {id:'s3', tier:'S', name:'鉄人', desc:'採点ストリーク100日達成', type:'streak', target:100, cond:()=>true},
+
+  {id:'ss1', tier:'SS', name:'覚醒', desc:'総合スコアSSランク(450点以上)を7日連続達成', type:'streak', target:7,
+    cond:e=>e.scores.total>=450},
+  {id:'ss2', tier:'SS', name:'不眠不休の管理者', desc:'睡眠カテゴリSランク以上(90点以上)を30日連続達成', type:'streak', target:30,
+    cond:e=>e.scores.sleep>=90},
+  {id:'ss3', tier:'SS', name:'半年の軌跡', desc:'採点ストリーク180日達成', type:'streak', target:180, cond:()=>true},
+
+  {id:'sss1', tier:'SSS', name:'満点回答', desc:'総合500点(パーフェクト)を達成', type:'single',
+    cond:e=>e.scores.total>=500},
+  {id:'sss2', tier:'SSS', name:'生ける伝説', desc:'総合スコアSSランク(450点以上)を30日連続達成', type:'streak', target:30,
+    cond:e=>e.scores.total>=450},
+  {id:'sss3', tier:'SSS', name:'一年皆勤', desc:'採点ストリーク365日達成', type:'streak', target:365, cond:()=>true},
+];
+function evaluateAchievements(allEntries){
+  const scored = allEntries.filter(e=>e.scores).sort((a,b)=>a.date.localeCompare(b.date));
+  const entryMap = new Map(scored.map(e=>[e.date,e]));
+  const datesAsc = scored.map(e=>e.date);
+  return ACHIEVEMENTS.map(a=>{
+    let achieved=false, progress=0;
+    if(a.type==='single'){ achieved = scored.some(a.cond); progress = achieved?1:0; }
+    else if(a.type==='count'){ progress = scored.filter(a.cond).length; achieved = progress>=a.target; }
+    else if(a.type==='streak'){ progress = maxStreakByCond(datesAsc, entryMap, a.cond); achieved = progress>=a.target; }
+    return { ...a, achieved, progress };
+  });
+}
+const TIER_COLOR = {C:'#8A8A8E', B:'#30B0C7', A:'#007AFF', S:'#5856D6', SS:'#FF9500', SSS:'#FF3B30'};
+async function renderTitles(){
+  const all = await loadAllEntries();
+  const results = evaluateAchievements(all);
+  const tierOrder = ['C','B','A','S','SS','SSS'];
+  const unlockedCount = results.filter(r=>r.achieved).length;
+  let html = `<div class="hint" style="margin-bottom:14px;">${unlockedCount} / ${results.length} 個 達成</div>`;
+  tierOrder.forEach(tier => {
+    const items = results.filter(r=>r.tier===tier);
+    html += `<div class="sub-h" style="color:${TIER_COLOR[tier]}">${tier}ランク</div>`;
+    items.forEach(r => {
+      const progText = r.type==='single' ? (r.achieved?'達成済み':'未達成') : `${Math.min(r.progress,r.target)} / ${r.target}`;
+      html += `<div class="title-card ${r.achieved?'unlocked':'locked'}">
+        <div class="title-badge" style="background:${r.achieved?TIER_COLOR[tier]:'#D1D1D6'}">${r.achieved?tier:'🔒'}</div>
+        <div class="title-info">
+          <div class="title-name">${r.name}</div>
+          <div class="title-desc">${r.desc}</div>
+          <div class="title-prog">${progText}</div>
+        </div>
+      </div>`;
+    });
+  });
+  $('titlesBody').innerHTML = html;
+}
+
+/* ================= strict mode: read screenshots ================= */
+function fileToBase64(file){
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result.split(',')[1]);
+    r.onerror = () => reject(new Error('read failed'));
+    r.readAsDataURL(file);
+  });
+}
+['ss_study','ss_wake','ss_sns'].forEach(id => {
+  $(id).addEventListener('change', () => {
+    const f = $(id).files[0];
+    $(id+'_status').textContent = f ? `選択済み: ${f.name}` : '';
+  });
+});
+$('ssReadBtn').addEventListener('click', async () => {
+  const studyFile = $('ss_study').files[0];
+  const wakeFile = $('ss_wake').files[0];
+  const snsFile = $('ss_sns').files[0];
+  if(!studyFile && !wakeFile && !snsFile){
+    $('ssResultHint').textContent = '少なくとも1枚、画像を選択してください。';
+    return;
+  }
+  const btn = $('ssReadBtn');
+  btn.disabled = true; btn.textContent = '読み取り中…';
+  $('ssResultHint').textContent = '';
+  try{
+    const content = [];
+    if(studyFile){ content.push({type:'text', text:'①これは勉強時間記録アプリのスクリーンショットです。'}); content.push({type:'image', source:{type:'base64', media_type: studyFile.type || 'image/jpeg', data: await fileToBase64(studyFile)}}); }
+    if(wakeFile){ content.push({type:'text', text:'②これは起床時刻がわかるスクリーンショットです。'}); content.push({type:'image', source:{type:'base64', media_type: wakeFile.type || 'image/jpeg', data: await fileToBase64(wakeFile)}}); }
+    if(snsFile){ content.push({type:'text', text:'③これはスマホのスクリーンタイム（SNS利用時間の目安）のスクリーンショットです。'}); content.push({type:'image', source:{type:'base64', media_type: snsFile.type || 'image/jpeg', data: await fileToBase64(snsFile)}}); }
+    content.push({type:'text', text:'それぞれの画像から読み取れる値だけを、次のJSON形式で返してください。他のテキストは一切含めないでください。画像が渡されていない項目や読み取れない項目はnullにしてください。\n{"studyMinutes": 数値またはnull, "wakeTime": "HH:MM"形式の文字列またはnull, "snsMinutes": 数値またはnull}'});
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 300, messages: [{ role: "user", content }] })
+    });
+    const data = await response.json();
+    const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
+    const cleaned = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+
+    const applied = [];
+    if(parsed.studyMinutes != null){
+      const rounded = Math.round(parsed.studyMinutes/15)*15;
+      const clamped = clamp(rounded, 0, 720);
+      wheelValues.study = clamped;
+      if(studyWheel) studyWheel.setValue(clamped);
+      applied.push(`勉強:${clamped}分`);
+    }
+    if(parsed.wakeTime){
+      $('wake').value = parsed.wakeTime;
+      applied.push(`起床:${parsed.wakeTime}`);
+    }
+    if(parsed.snsMinutes != null){
+      const rounded = Math.round(parsed.snsMinutes/15)*15;
+      const clamped = clamp(rounded, 0, 360);
+      wheelValues.sns = clamped;
+      if(snsWheel) snsWheel.setValue(clamped);
+      applied.push(`SNS:${clamped}分`);
+    }
+    $('ssResultHint').textContent = applied.length ? `読み取り結果を反映しました（${applied.join(' / ')}）。内容を確認して「採点する」を押してください。` : '画像から値を読み取れませんでした。手入力で調整してください。';
+  }catch(err){
+    console.error('screenshot read failed', err);
+    $('ssResultHint').textContent = '読み取りに失敗しました。画像を変えるか、手入力で記録してください。';
+  }
+  btn.disabled = false; btn.textContent = '🤖 AIに読み取らせる';
+});
+
+/* ================= AI report ================= */
+let aiReportMode = 'day';
+$('aiModeDay').addEventListener('click', () => { aiReportMode='day'; $('aiModeDay').classList.add('active'); $('aiModeWeek').classList.remove('active'); $('aiReportBody').style.display='none'; });
+$('aiModeWeek').addEventListener('click', () => { aiReportMode='week'; $('aiModeWeek').classList.add('active'); $('aiModeDay').classList.remove('active'); $('aiReportBody').style.display='none'; });
+
+$('aiReportBtn').addEventListener('click', async () => {
+  const btn = $('aiReportBtn'); const out = $('aiReportBody');
+  btn.disabled = true; btn.textContent = '生成中…';
+  out.style.display = 'block';
+  out.innerHTML = '<div class="hint">AIが記録を確認しています…</div>';
+  try{
+    const all = await loadAllEntries();
+    const totalXP = computeTotalXP(all);
+    const { level } = levelFromXP(totalXP);
+    let prompt;
+
+    if(aiReportMode === 'day'){
+      const targetDate = $('dateInput').value || todayStr();
+      const entry = all.find(e => e.date === targetDate && e.scores);
+      if(!entry){
+        out.innerHTML = '<div class="empty">選択中の日はまだ採点されていません。記録タブで採点してから試してください。</div>';
+        btn.disabled = false; btn.textContent = '🤖 AIレポートを見る'; return;
+      }
+      const r = overallRank(entry.scores.total).rank;
+      const note = (entry.studyContent || '記入なし').replace(/\n/g,' ');
+      const todosLine = entry.todos.length ? `Todo ${entry.todos.filter(t=>t.done).length}/${entry.todos.length}完了` : 'Todoなし';
+      const diaryLine = (entry.diaryText||'').trim() && entry.diaryText.trim() !== DIARY_TEMPLATE.trim() ? '日記あり' : '日記なし';
+      prompt = `あなたは受験生の自己管理を見守るコーチです。以下はユーザーの${entry.date}（1日分）の記録です。
+
+総合${entry.scores.total}点(${r})｜勉強${entry.scores.study} 睡眠${entry.scores.sleep} スマホ${entry.scores.phone} 生活${entry.scores.life} 自己管理${entry.scores.self}｜学習内容:${note}｜${todosLine}｜${diaryLine}
+
+睡眠目標:${currentSettings.sleepTarget}時間・起床目標${currentSettings.wakeTarget}、SNS上限:${currentSettings.snsLimit}分。現在レベル${level}。
+
+この1日の記録について、良かった点・気になる点を短く指摘し、明日すぐ意識できる改善アクションを1〜2個、日本語で提案してください。厳しすぎず、甘やかしすぎない、対等なコーチのトーンで。200〜300字程度でまとめてください。`;
+    } else {
+      const scored = all.filter(e => e.scores).sort((a,b) => b.date.localeCompare(a.date)).slice(0, 14);
+      if(!scored.length){
+        out.innerHTML = '<div class="empty">まだ採点済みの記録がありません。まずは記録タブで採点してみてください。</div>';
+        btn.disabled = false; btn.textContent = '🤖 AIレポートを見る'; return;
+      }
+      const asc = scored.slice().sort((a,b) => a.date.localeCompare(b.date));
+      const lines = asc.map(e => {
+        const r = overallRank(e.scores.total).rank;
+        const note = (e.studyContent || '記入なし').replace(/\n/g,' ').slice(0,50);
+        return `${e.date}｜総合${e.scores.total}(${r})｜勉強${e.scores.study} 睡眠${e.scores.sleep} スマホ${e.scores.phone} 生活${e.scores.life} 自己管理${e.scores.self}｜学習内容:${note}`;
+      }).join('\n');
+      prompt = `あなたは受験生の自己管理を見守るコーチです。以下は直近${asc.length}日分の生活・学習記録です（古い日付順）。
+
+${lines}
+
+睡眠目標:${currentSettings.sleepTarget}時間・起床目標${currentSettings.wakeTarget}、SNS上限:${currentSettings.snsLimit}分。現在レベル${level}。
+
+この記録から読み取れる傾向（良い点・気になる点）を短く指摘し、次の1週間で意識すると良い具体的な改善アクションを2〜3個、日本語で提案してください。厳しすぎず、甘やかしすぎない、対等なコーチのトーンで。300〜400字程度でまとめてください。`;
+    }
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1000, messages: [{ role: "user", content: prompt }] })
+    });
+    const data = await response.json();
+    const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
+    out.innerHTML = `<h2>🤖 AIからのアドバイス</h2><div class="ai-text">${(text || 'アドバイスの生成に失敗しました。もう一度お試しください。').replace(/</g,'&lt;')}</div>`;
+  }catch(err){
+    console.error('AI report failed', err);
+    out.innerHTML = '<div class="empty">AIレポートの取得に失敗しました。時間をおいて再度お試しください。</div>';
+  }
+  btn.disabled = false; btn.textContent = '🤖 AIレポートを見る';
+});
+
+/* ================= CSV export ================= */
+$('exportBtn').addEventListener('click', async () => {
+  const all = await loadAllEntries();
+  const scored = all.filter(e=>e.scores).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!scored.length){ alert('エクスポートできる記録がありません。'); return; }
+  const header = ['date','total','study','sleep','phone','life','self','rank','xp','studyContent','diaryLength'];
+  const rows = scored.map(e => {
+    const r = overallRank(e.scores.total).rank;
+    const note = (e.studyContent||'').replace(/"/g,'""').replace(/\n/g,' ');
+    return [e.date, e.scores.total, e.scores.study, e.scores.sleep, e.scores.phone, e.scores.life, e.scores.self, r, dailyXP(e.scores), `"${note}"`, (e.diaryText||'').length].join(',');
+  });
+  const csv = [header.join(','), ...rows].join('\n');
+  const blob = new Blob(["\ufeff"+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'daily-score.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+/* ================= settings bind ================= */
+const STRICT_LOCK_MS = 72 * 60 * 60 * 1000;
+function strictLockRemainingMs(s){
+  if(!s.strictMode || !s.strictModeEnabledAt) return 0;
+  return Math.max(0, STRICT_LOCK_MS - (Date.now() - s.strictModeEnabledAt));
+}
+function applyStrictLock(isStrict){
+  $('wheel-study').classList.toggle('locked', isStrict);
+  $('wheel-sns').classList.toggle('locked', isStrict);
+  $('wake').disabled = isStrict;
+}
+function bindSettingsToForm(s){
+  $('set_sleepTarget').value = s.sleepTarget; $('set_wakeTarget').value = s.wakeTarget; $('set_snsLimit').value = s.snsLimit;
+  $('set_strictMode').checked = !!s.strictMode;
+  $('strictCard').style.display = s.strictMode ? 'block' : 'none';
+  applyStrictLock(!!s.strictMode);
+  const remaining = strictLockRemainingMs(s);
+  if(remaining>0){
+    const h = Math.floor(remaining/3600000), m = Math.floor((remaining%3600000)/60000);
+    $('strictLockHint').textContent = `🔒 オフにできるまで あと${h}時間${m}分`;
+  } else {
+    $('strictLockHint').textContent = '';
+  }
+  $('sleepHint').textContent = `${s.sleepTarget}時間睡眠・${s.wakeTarget}起床が基準。30分ズレるごとにそれぞれ10点減点（各50点）。`;
+  $('phoneHint').textContent = `${s.snsLimit}分未満なら満点。以降15分ごとに2.5点減点。`;
+}
+['set_sleepTarget','set_wakeTarget','set_snsLimit'].forEach(id=>{
+  $(id).addEventListener('change', async () => {
+    currentSettings = { ...currentSettings, sleepTarget: parseFloat($('set_sleepTarget').value) || 7, wakeTarget: $('set_wakeTarget').value || '06:00', snsLimit: parseFloat($('set_snsLimit').value) || 120 };
+    bindSettingsToForm(currentSettings);
+    await saveSettings(currentSettings);
+  });
+});
+$('set_strictMode').addEventListener('change', async () => {
+  const wantsOn = $('set_strictMode').checked;
+  if(currentSettings.strictMode && !wantsOn){
+    const remaining = strictLockRemainingMs(currentSettings);
+    if(remaining>0){
+      $('set_strictMode').checked = true;
+      const h = Math.ceil(remaining/3600000);
+      alert(`厳しめモードは一度オンにすると72時間はオフにできません。あと約${h}時間です。`);
+      return;
+    }
+  }
+  const next = { ...currentSettings, strictMode: wantsOn };
+  if(wantsOn && !currentSettings.strictMode) next.strictModeEnabledAt = Date.now();
+  if(!wantsOn) next.strictModeEnabledAt = null;
+  currentSettings = next;
+  bindSettingsToForm(currentSettings);
+  await saveSettings(currentSettings);
+});
+
+/* ================= init ================= */
+(async function init(){
+  $('dateInput').value = todayStr();
+  uiSettings = await loadUiSettings();
+  bindUiSettingsToForm(uiSettings); applyUiSettings(uiSettings);
+  currentSettings = await loadSettings();
+  bindSettingsToForm(currentSettings);
+  currentEntry = await loadEntry(todayStr());
+  bindEntryToForm(currentEntry);
+  goalsData = await loadGoals();
+  await updateStreakBadge(); await updateStudyStreakBadge();
+  await updateLevelBadge();
+})();
+</script>
+</body>
+</html>
