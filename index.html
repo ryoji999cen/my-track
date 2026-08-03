@@ -619,25 +619,41 @@ const db = getFirestore(fbApp);
 const COL = 'kv';
 
 // Drop-in replacement for the Claude-artifact window.storage API, backed by Firestore.
+// Writes to the same key are serialized (queued) so that a slow, earlier write can never
+// land after — and overwrite — a faster, more recent write for that same key.
+const writeQueues = new Map();
+function queueWrite(key, fn){
+  const prev = writeQueues.get(key) || Promise.resolve();
+  const next = prev.then(fn, fn); // run fn even if the previous write in the chain failed
+  writeQueues.set(key, next);
+  return next;
+}
 window.storage = {
   async get(key, shared){
+    const pending = writeQueues.get(key);
+    if(pending) await pending.catch(()=>{});
     const ref = doc(db, COL, key);
     const snap = await getDoc(ref);
     if(!snap.exists()) throw new Error('not found: ' + key);
     return { key, value: snap.data().value, shared: !!shared };
   },
   async set(key, value, shared){
-    const ref = doc(db, COL, key);
-    await setDoc(ref, { value, updatedAt: Date.now() });
+    await queueWrite(key, async () => {
+      const ref = doc(db, COL, key);
+      await setDoc(ref, { value, updatedAt: Date.now() });
+    });
     return { key, value, shared: !!shared };
   },
   async delete(key, shared){
-    const ref = doc(db, COL, key);
-    await deleteDoc(ref);
+    await queueWrite(key, async () => {
+      const ref = doc(db, COL, key);
+      await deleteDoc(ref);
+    });
     return { key, deleted: true, shared: !!shared };
   },
   async list(prefix, shared){
     prefix = prefix || '';
+    await Promise.all([...writeQueues.values()].map(p => p.catch(()=>{})));
     const col = collection(db, COL);
     const q = query(col, where(documentId(), '>=', prefix), where(documentId(), '<', prefix + '\uf8ff'));
     const snap = await getDocs(q);
