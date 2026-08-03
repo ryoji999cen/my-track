@@ -154,6 +154,12 @@
   .decide-btn:active{transform:scale(0.98);}
   .decide-note{text-align:center; font-family:var(--font-mono); font-size:11px; color:var(--ok); font-weight:700; min-height:14px; margin-top:4px;}
 
+  .field-saved{
+    box-shadow: 0 0 0 2px var(--ok) !important;
+    background: rgba(52,199,89,0.08) !important;
+    transition: box-shadow .15s, background .15s;
+  }
+
   .locked-card{position:relative;}
   .locked-card.locked{opacity:0.5; pointer-events:none;}
   .locked-card.locked::after{
@@ -664,6 +670,12 @@ window.storage = {
 };
 
 const $ = id => document.getElementById(id);
+function flashSaved(el){
+  if(!el) return;
+  el.classList.add('field-saved');
+  clearTimeout(el._flashTimer);
+  el._flashTimer = setTimeout(() => el.classList.remove('field-saved'), 900);
+}
 const DIARY_TEMPLATE = '✅ 今日の良かったところ\n\n\n⚠️ 反省する点\n\n\n🔧 次への対策\n\n\n💭 今日ひとこと\n';
 function fmtDateLocal(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 const todayStr = () => fmtDateLocal(new Date());
@@ -989,29 +1001,49 @@ function renderResultFromScores(scores, animate){
   $('xpGain').textContent = '';
 }
 let sleepH = 7, sleepM = 0, snsH = 0, snsM = 0;
+let sleepConfirmed = false, snsConfirmed = false;
 let sleepHourWheel, sleepMinWheel, snsHourWheel, snsMinWheel;
+function renderSleepStatus(){
+  const el = $('sleepDecideNote');
+  if(sleepConfirmed){ el.textContent = `✓ ${sleepH}時間${sleepM}分で保存済み`; el.style.color = 'var(--ok)'; }
+  else { el.textContent = '未決定です。「決定」を押すと保存されます'; el.style.color = 'var(--ink-soft)'; }
+}
+function renderSnsStatus(){
+  const el = $('snsDecideNote');
+  if(snsConfirmed){ el.textContent = `✓ ${snsH}時間${snsM}分で保存済み`; el.style.color = 'var(--ok)'; }
+  else { el.textContent = '未決定です。「決定」を押すと保存されます'; el.style.color = 'var(--ink-soft)'; }
+}
 function updateSleepLabel(){
   $('sleep-label').textContent = `${sleepH}時間${sleepM}分`;
   wheelValues.sleep = sleepH + sleepM/60;
+  sleepConfirmed = false;
+  renderSleepStatus();
 }
 function updateSnsLabel(){
   $('sns-label').textContent = `${snsH}時間${snsM}分`;
   wheelValues.sns = snsH*60 + snsM;
+  snsConfirmed = false;
+  renderSnsStatus();
 }
 function bindEntryToForm(entry){
   const initSleepMin = Math.round((entry.sleep ?? 7)*60);
   sleepH = Math.floor(initSleepMin/60); sleepM = initSleepMin%60;
   sleepHourWheel = buildWheel('wheel-sleep-h', HOUR_VALUES_SLEEP, fmtHour, sleepH, v => { sleepH = v; updateSleepLabel(); });
   sleepMinWheel = buildWheel('wheel-sleep-m', MINUTE_VALUES, fmtMinute, sleepM, v => { sleepM = v; updateSleepLabel(); });
-  updateSleepLabel();
+  $('sleep-label').textContent = `${sleepH}時間${sleepM}分`;
+  wheelValues.sleep = sleepH + sleepM/60;
+  sleepConfirmed = entry.sleep != null;
+  renderSleepStatus();
 
   const initSns = entry.sns ?? 0;
   snsH = Math.floor(initSns/60); snsM = initSns%60;
   snsHourWheel = buildWheel('wheel-sns-h', HOUR_VALUES_SNS, fmtHour, snsH, v => { snsH = v; updateSnsLabel(); });
   snsMinWheel = buildWheel('wheel-sns-m', MINUTE_VALUES, fmtMinute, snsM, v => { snsM = v; updateSnsLabel(); });
-  updateSnsLabel();
+  $('sns-label').textContent = `${snsH}時間${snsM}分`;
+  wheelValues.sns = snsH*60 + snsM;
+  snsConfirmed = entry.sns != null;
+  renderSnsStatus();
 
-  $('sleepDecideNote').textContent = ''; $('snsDecideNote').textContent = '';
   $('wake').value = entry.wake ?? '';
   lifeIds.forEach(id => $('life_'+id).checked = !!entry.life[id]);
   $('sm_late').checked = !!entry.self.late;
@@ -1063,6 +1095,8 @@ $('calcBtn').addEventListener('click', async () => {
   const prevGrandXP = await computeGrandTotalXP();
 
   readFormIntoEntry();
+  sleepConfirmed = true; renderSleepStatus();
+  snsConfirmed = true; renderSnsStatus();
   const scores = computeAll(currentEntry, currentSettings);
   currentEntry.scores = scores;
   currentEntry.settingsSnapshot = { ...currentSettings };
@@ -1158,16 +1192,18 @@ $('studyLogList').addEventListener('change', async (e) => {
   const id = e.target.dataset.id;
   const row = (currentEntry.studyLog||[]).find(r=>r.id===id);
   if(!row) return;
+  const rowEl = e.target.closest('.study-log-row');
   if(e.target.classList.contains('sl-subject')) row.subject = e.target.value;
   else if(e.target.classList.contains('sl-material')) row.material = e.target.value;
   else if(e.target.classList.contains('sl-hours') || e.target.classList.contains('sl-mins')){
-    const rowEl = e.target.closest('.study-log-row');
     const h = parseFloat(rowEl.querySelector('.sl-hours').value) || 0;
     const m = parseFloat(rowEl.querySelector('.sl-mins').value) || 0;
     row.minutes = h*60 + m;
   }
   updateStudyTotals();
   await persistEntry(currentEntry);
+  flashSaved(e.target);
+  if(rowEl) rowEl.querySelectorAll('.sl-subject,.sl-material,.sl-hours,.sl-mins').forEach(el => { if(el!==e.target){ el.classList.add('field-saved'); setTimeout(()=>el.classList.remove('field-saved'),900); } });
 });
 $('studyLogList').addEventListener('click', async (e) => {
   if(!e.target.classList.contains('sl-remove')) return;
@@ -1178,22 +1214,29 @@ $('studyLogList').addEventListener('click', async (e) => {
   await persistEntry(currentEntry);
 });
 
-$('sleepDecideBtn').addEventListener('click', () => {
-  $('sleepDecideNote').textContent = `✓ ${sleepH}時間${sleepM}分で決定しました`;
-  setTimeout(()=> $('sleepDecideNote').textContent='', 2200);
+$('sleepDecideBtn').addEventListener('click', async () => {
+  currentEntry.sleep = wheelValues.sleep;
+  await persistEntry(currentEntry);
+  sleepConfirmed = true;
+  renderSleepStatus();
+  flashSaved($('sleepDecideBtn'));
 });
-$('snsDecideBtn').addEventListener('click', () => {
-  $('snsDecideNote').textContent = `✓ ${snsH}時間${snsM}分で決定しました`;
-  setTimeout(()=> $('snsDecideNote').textContent='', 2200);
+$('snsDecideBtn').addEventListener('click', async () => {
+  currentEntry.sns = wheelValues.sns;
+  await persistEntry(currentEntry);
+  snsConfirmed = true;
+  renderSnsStatus();
+  flashSaved($('snsDecideBtn'));
 });
 
 ['set_studyGoalH','set_studyGoalM'].forEach(id => {
-  $(id).addEventListener('change', async () => {
+  $(id).addEventListener('change', async (e) => {
     const h = parseFloat($('set_studyGoalH').value) || 0;
     const m = parseFloat($('set_studyGoalM').value) || 0;
     currentSettings = { ...currentSettings, studyGoalMinutes: h*60+m };
     await saveSettings(currentSettings);
     updateStudyTotals();
+    flashSaved(e.target);
   });
 });
 
@@ -1412,6 +1455,7 @@ $('goalsBody').addEventListener('change', async (e) => {
     const item = goalsData[cat].find(g=>g.id===id);
     if(item) item.text = e.target.value;
     await saveGoals();
+    flashSaved(e.target);
   } else if(e.target.classList.contains('goal-check')){
     const item = goalsData[cat].find(g=>g.id===id);
     if(item && e.target.checked){
@@ -1794,6 +1838,9 @@ $('ssReadBtn').addEventListener('click', async () => {
       if(snsHourWheel) snsHourWheel.setValue(snsH);
       if(snsMinWheel) snsMinWheel.setValue(snsM);
       updateSnsLabel();
+      currentEntry.sns = wheelValues.sns;
+      snsConfirmed = true;
+      renderSnsStatus();
       applied.push(`SNS:${snsH}時間${snsM}分`);
     }
     await persistEntry(currentEntry);
@@ -1935,10 +1982,11 @@ function bindSettingsToForm(s){
   $('phoneHint').textContent = `${s.snsLimit}分未満なら満点。以降15分ごとに2.5点減点。`;
 }
 ['set_sleepTarget','set_wakeTarget','set_snsLimit'].forEach(id=>{
-  $(id).addEventListener('change', async () => {
+  $(id).addEventListener('change', async (e)=>{
     currentSettings = { ...currentSettings, sleepTarget: parseFloat($('set_sleepTarget').value) || 7, wakeTarget: $('set_wakeTarget').value || '06:00', snsLimit: parseFloat($('set_snsLimit').value) || 120 };
     bindSettingsToForm(currentSettings);
     await saveSettings(currentSettings);
+    flashSaved($(id));
   });
 });
 $('set_strictMode').addEventListener('change', async () => {
