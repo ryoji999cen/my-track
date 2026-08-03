@@ -1,10 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#007AFF"/>
-      <stop offset="1" stop-color="#5856D6"/>
+      <stop offset="0" stop-color="#0A84FF"/>
+      <stop offset="0.55" stop-color="#5E5CE6"/>
+      <stop offset="1" stop-color="#BF5AF2"/>
+    </linearGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
     </linearGradient>
   </defs>
   <rect width="100" height="100" rx="22" fill="url(#g)"/>
-  <text x="50" y="63" font-family="-apple-system,sans-serif" font-size="36" font-weight="800" fill="white" text-anchor="middle">点</text>
+  <rect width="100" height="48" rx="22" fill="url(#gloss)"/>
+  <path d="M28 53 L43 68 L74 33" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
 </svg>

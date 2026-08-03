@@ -9,8 +9,8 @@
 <meta name="apple-mobile-web-app-title" content="成績表">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#F2F2F7">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23007AFF'/%3E%3Cstop offset='1' stop-color='%235856D6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23g)'/%3E%3Ctext x='50' y='63' font-family='-apple-system,sans-serif' font-size='36' font-weight='800' fill='white' text-anchor='middle'%3E点%3C/text%3E%3C/svg%3E">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23007AFF'/%3E%3Cstop offset='1' stop-color='%235856D6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='url(%23g)'/%3E%3Ctext x='50' y='63' font-family='-apple-system,sans-serif' font-size='36' font-weight='800' fill='white' text-anchor='middle'%3E点%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E %3Cdefs%3E %3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E %3Cstop offset='0' stop-color='%230A84FF'/%3E %3Cstop offset='0.55' stop-color='%235E5CE6'/%3E %3Cstop offset='1' stop-color='%23BF5AF2'/%3E %3C/linearGradient%3E %3ClinearGradient id='gloss' x1='0' y1='0' x2='0' y2='1'%3E %3Cstop offset='0' stop-color='%23FFFFFF' stop-opacity='0.38'/%3E %3Cstop offset='1' stop-color='%23FFFFFF' stop-opacity='0'/%3E %3C/linearGradient%3E %3C/defs%3E %3Crect width='100' height='100' rx='22' fill='url(%23g)'/%3E %3Crect width='100' height='48' rx='22' fill='url(%23gloss)'/%3E %3Cpath d='M28 53 L43 68 L74 33' stroke='%23FFFFFF' stroke-width='10' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E %3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E %3Cdefs%3E %3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E %3Cstop offset='0' stop-color='%230A84FF'/%3E %3Cstop offset='0.55' stop-color='%235E5CE6'/%3E %3Cstop offset='1' stop-color='%23BF5AF2'/%3E %3C/linearGradient%3E %3ClinearGradient id='gloss' x1='0' y1='0' x2='0' y2='1'%3E %3Cstop offset='0' stop-color='%23FFFFFF' stop-opacity='0.38'/%3E %3Cstop offset='1' stop-color='%23FFFFFF' stop-opacity='0'/%3E %3C/linearGradient%3E %3C/defs%3E %3Crect width='100' height='100' rx='22' fill='url(%23g)'/%3E %3Crect width='100' height='48' rx='22' fill='url(%23gloss)'/%3E %3Cpath d='M28 53 L43 68 L74 33' stroke='%23FFFFFF' stroke-width='10' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E %3C/svg%3E">
 <link rel="manifest" href="./manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -436,36 +436,16 @@
     <div class="card">
       <h2>勉強 <span class="cat-score" id="cs-study">— / 100</span></h2>
       <div class="row"><label>今日の合計</label><div style="font-family:var(--font-mono); font-weight:800; font-size:17px;" id="studyTotalLabel">0分</div></div>
-      <div class="row"><label>目標勉強時間</label><div><input type="number" id="set_studyGoal" step="15" min="0"><span class="unit">分</span></div></div>
+      <div class="row"><label>目標勉強時間</label><div><input type="number" id="set_studyGoalH" min="0" style="width:56px;"><span class="unit">時間</span> <input type="number" id="set_studyGoalM" min="0" max="59" style="width:56px;"><span class="unit">分</span></div></div>
       <div class="lv-bar-track" style="margin-top:8px;"><div class="lv-bar-fill" id="studyGoalBar" style="width:0%; background:var(--navy);"></div></div>
       <div class="hint" id="studyGoalHint"></div>
       <div class="hint">15分相当ごとに2.5点。600分(10h)で満点。</div>
-    </div>
-
-    <div class="card">
-      <h2>科目・参考書リスト</h2>
-      <div class="sub-h">科目</div>
-      <div id="subjectChips" style="margin-bottom:8px;"></div>
-      <div class="todo-add"><input type="text" id="subjectInput" placeholder="科目を追加 (例:英語)"><button id="subjectAddBtn">追加</button></div>
-      <div class="sub-h" style="margin-top:16px;">参考書</div>
-      <div id="materialChips" style="margin-bottom:8px;"></div>
-      <div class="todo-add"><input type="text" id="materialInput" placeholder="参考書を追加"><button id="materialAddBtn">追加</button></div>
     </div>
 
     <div class="card locked-card" id="studyLogCard">
       <h2>科目・参考書ごとの記録</h2>
       <div id="studyLogList"></div>
       <button class="goal-add" id="studyLogAddBtn" style="margin-top:10px;">＋ 記録を追加</button>
-    </div>
-
-    <div class="card" id="studyTaskCard">
-      <h2>目標勉強タスク</h2>
-      <div class="todo-add">
-        <input type="text" id="studyTaskInput" placeholder="タスクを入力">
-        <input type="number" id="studyTaskEst" placeholder="分" style="width:60px;">
-        <button id="studyTaskAddBtn">追加</button>
-      </div>
-      <div id="studyTaskList"></div>
     </div>
 
     <div class="card">
@@ -552,6 +532,21 @@
         <label class="check-item"><input type="checkbox" id="set_strictMode"><span class="switch"></span>スクショをAIに読み取らせて記録する<span class="pt"></span></label>
         <div class="hint">オンにすると、勉強時間・起床時刻・スマホ利用時間を手入力ではなくスクリーンショットからAIが読み取って自動入力します（記録タブに撮影欄が追加されます）。一度オンにすると72時間はオフにできません。</div>
         <div class="hint" id="strictLockHint" style="color:var(--hanko); font-weight:700;"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <button class="disclosure-header" id="studyListsToggle">
+        <span>科目・参考書リスト</span>
+        <span class="chevron" id="studyListsChevron">▾</span>
+      </button>
+      <div class="disclosure-body" id="studyListsSectionBody" style="display:none;">
+        <div class="sub-h">科目</div>
+        <div id="subjectChips" style="margin-bottom:8px;"></div>
+        <div class="todo-add"><input type="text" id="subjectInput" placeholder="科目を追加 (例:英語)"><button id="subjectAddBtn">追加</button></div>
+        <div class="sub-h" style="margin-top:16px;">参考書</div>
+        <div id="materialChips" style="margin-bottom:8px;"></div>
+        <div class="todo-add"><input type="text" id="materialInput" placeholder="参考書を追加"><button id="materialAddBtn">追加</button></div>
       </div>
     </div>
 
@@ -763,6 +758,12 @@ $('settingsToggle').addEventListener('click', () => {
   body.style.display = open ? 'none' : 'block';
   $('settingsChevron').textContent = open ? '▾' : '▴';
 });
+$('studyListsToggle').addEventListener('click', () => {
+  const body = $('studyListsSectionBody');
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  $('studyListsChevron').textContent = open ? '▾' : '▴';
+});
 $('titlesToggle').addEventListener('click', () => {
   const body = $('titlesSectionBody');
   const open = body.style.display !== 'none';
@@ -786,7 +787,7 @@ async function saveSettings(s){ try{ await window.storage.set('settings', JSON.s
 
 function defaultEntry(date){
   return {
-    date, study:0, studyLog:[], studyTasks:[], sleep:null, wake:'', sns:null,
+    date, study:0, studyLog:[], sleep:null, wake:'', sns:null,
     life:{ m_teeth:false,m_supp:false,m_wash:false,m_skin:false,m_med:false, n_med:false,
            e_teeth:false,e_floss:false,e_med:false,e_supp:false,e_bath:false,e_wash:false,e_skin:false },
     self:{ late:false, forgot:false }, diaryText:'', todos:[], scores:null
@@ -1004,7 +1005,6 @@ function bindEntryToForm(entry){
   if(entry.scores){ renderResultFromScores(entry.scores, false); }
   renderTodos();
   renderStudyLog();
-  renderStudyTasks();
 }
 function readFormIntoEntry(){
   currentEntry.study = studyLogTotal(currentEntry.studyLog);
@@ -1159,45 +1159,6 @@ $('studyLogList').addEventListener('click', async (e) => {
   await persistEntry(currentEntry);
 });
 
-function renderStudyTasks(){
-  const list = $('studyTaskList');
-  const tasks = currentEntry.studyTasks || [];
-  if(!tasks.length){
-    list.innerHTML = '<div class="empty">目標勉強タスクはまだありません。</div>';
-  } else {
-    list.innerHTML = tasks.map(t => `
-      <div class="todo-item ${t.done?'done':''}">
-        <label class="check-item" style="margin:0;"><input type="checkbox" class="stask-check" data-id="${t.id}" ${t.done?'checked':''}><span class="switch"></span></label>
-        <span>${escapeHtml(t.text)} <span class="unit">(${t.estMinutes||0}分目安)</span></span>
-        <button class="stask-del" data-id="${t.id}">✕</button>
-      </div>`).join('');
-  }
-}
-$('studyTaskAddBtn').addEventListener('click', async () => {
-  const val = $('studyTaskInput').value.trim();
-  if(!val) return;
-  const est = parseFloat($('studyTaskEst').value) || 0;
-  currentEntry.studyTasks = currentEntry.studyTasks || [];
-  currentEntry.studyTasks.push({ id: genId(), text: val, estMinutes: est, done:false });
-  $('studyTaskInput').value=''; $('studyTaskEst').value='';
-  renderStudyTasks();
-  await persistEntry(currentEntry);
-});
-$('studyTaskInput').addEventListener('keydown', e => { if(e.key==='Enter') $('studyTaskAddBtn').click(); });
-$('studyTaskList').addEventListener('click', async (e) => {
-  if(e.target.classList.contains('stask-del')){
-    currentEntry.studyTasks = currentEntry.studyTasks.filter(t=>t.id!==e.target.dataset.id);
-    renderStudyTasks(); await persistEntry(currentEntry);
-  }
-});
-$('studyTaskList').addEventListener('change', async (e) => {
-  if(e.target.classList.contains('stask-check')){
-    const t = currentEntry.studyTasks.find(t=>t.id===e.target.dataset.id);
-    if(t) t.done = e.target.checked;
-    renderStudyTasks(); await persistEntry(currentEntry);
-  }
-});
-
 $('sleepDecideBtn').addEventListener('click', () => {
   $('sleepDecideNote').textContent = `✓ ${sleepH}時間${sleepM}分で決定しました`;
   setTimeout(()=> $('sleepDecideNote').textContent='', 2200);
@@ -1207,10 +1168,14 @@ $('snsDecideBtn').addEventListener('click', () => {
   setTimeout(()=> $('snsDecideNote').textContent='', 2200);
 });
 
-$('set_studyGoal').addEventListener('change', async () => {
-  currentSettings = { ...currentSettings, studyGoalMinutes: parseFloat($('set_studyGoal').value) || 360 };
-  await saveSettings(currentSettings);
-  updateStudyTotals();
+['set_studyGoalH','set_studyGoalM'].forEach(id => {
+  $(id).addEventListener('change', async () => {
+    const h = parseFloat($('set_studyGoalH').value) || 0;
+    const m = parseFloat($('set_studyGoalM').value) || 0;
+    currentSettings = { ...currentSettings, studyGoalMinutes: h*60+m };
+    await saveSettings(currentSettings);
+    updateStudyTotals();
+  });
 });
 
 let studyReportMode = 'week';
@@ -1454,7 +1419,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
     btn.classList.add('active');
     $('panel-'+btn.dataset.tab).classList.add('active');
-    if(btn.dataset.tab === 'study'){ renderStudyLog(); renderStudyTasks(); renderStudyReport(studyReportMode); }
+    if(btn.dataset.tab === 'study'){ renderStudyLog(); renderStudyReport(studyReportMode); }
     if(btn.dataset.tab === 'diary') renderReport(currentReportMode);
     if(btn.dataset.tab === 'calendar') renderCalendar();
     if(btn.dataset.tab === 'options') renderTitles();
@@ -1933,7 +1898,8 @@ function applyStrictLock(isStrict){
 }
 function bindSettingsToForm(s){
   $('set_sleepTarget').value = s.sleepTarget; $('set_wakeTarget').value = s.wakeTarget; $('set_snsLimit').value = s.snsLimit;
-  $('set_studyGoal').value = s.studyGoalMinutes;
+  $('set_studyGoalH').value = Math.floor((s.studyGoalMinutes||360)/60);
+  $('set_studyGoalM').value = (s.studyGoalMinutes||360)%60;
   $('set_strictMode').checked = !!s.strictMode;
   $('strictCard').style.display = s.strictMode ? 'block' : 'none';
   applyStrictLock(!!s.strictMode);
