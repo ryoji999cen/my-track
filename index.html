@@ -1124,11 +1124,13 @@ function renderStudyLog(){
 }
 function updateStudyTotals(){
   const total = studyLogTotal(currentEntry.studyLog);
-  $('studyTotalLabel').textContent = `${total}分`;
+  const th = Math.floor(total/60), tm = total%60;
+  $('studyTotalLabel').textContent = `${th}時間${tm}分`;
   const goal = currentSettings.studyGoalMinutes || 360;
+  const gh = Math.floor(goal/60), gm = goal%60;
   const pct = clamp((total/goal)*100, 0, 100);
   $('studyGoalBar').style.width = pct + '%';
-  $('studyGoalHint').textContent = `目標 ${goal}分中 ${total}分（${Math.round(pct)}%）`;
+  $('studyGoalHint').textContent = `目標 ${gh}時間${gm}分中 ${th}時間${tm}分（${Math.round(pct)}%）`;
 }
 $('studyLogAddBtn').addEventListener('click', async () => {
   currentEntry.studyLog = currentEntry.studyLog || [];
@@ -1153,6 +1155,7 @@ $('studyLogList').addEventListener('change', async (e) => {
 });
 $('studyLogList').addEventListener('click', async (e) => {
   if(!e.target.classList.contains('sl-remove')) return;
+  if(!confirm('この記録を削除しますか？')) return;
   const id = e.target.dataset.id;
   currentEntry.studyLog = (currentEntry.studyLog||[]).filter(r=>r.id!==id);
   renderStudyLog();
@@ -1253,6 +1256,7 @@ $('todoInput').addEventListener('keydown', e => { if(e.key==='Enter') $('todoAdd
 $('todoList').addEventListener('click', async (e) => {
   const idx = Number(e.target.dataset.idx);
   if(e.target.classList.contains('todo-del')){
+    if(!confirm('このTodoを削除しますか？')) return;
     currentEntry.todos.splice(idx,1);
     renderTodos(); await persistEntry(currentEntry);
   } else if(e.target.classList.contains('todo-check')){
@@ -1305,6 +1309,7 @@ $('materialInput').addEventListener('keydown', e => { if(e.key==='Enter') $('mat
 document.addEventListener('click', async (e) => {
   if(!e.target.classList.contains('chip-del')) return;
   const type = e.target.dataset.type, val = e.target.dataset.val;
+  if(!confirm(`「${val}」をリストから削除しますか？`)) return;
   studyLists[type] = studyLists[type].filter(x=>x!==val);
   await saveStudyLists(); renderStudyListsUI(); renderStudyLog();
 });
