@@ -148,6 +148,35 @@
   }
   input[type=time]:disabled{opacity:0.5; background:rgba(60,60,67,0.06);}
 
+  .decide-btn{width:100%; padding:10px; margin-top:8px; font-family:var(--font-display); font-weight:700; font-size:13px; background:rgba(0,122,255,0.1); color:var(--navy); border:none; border-radius:10px; cursor:pointer;}
+  .decide-btn:active{transform:scale(0.98);}
+  .decide-note{text-align:center; font-family:var(--font-mono); font-size:11px; color:var(--ok); font-weight:700; min-height:14px; margin-top:4px;}
+
+  .locked-card{position:relative;}
+  .locked-card.locked{opacity:0.5; pointer-events:none;}
+  .locked-card.locked::after{
+    content:"🔒 厳しめモード中は手動記録できません"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:20px;
+    font-family:var(--font-mono); font-size:11px; color:var(--ink-soft); font-weight:700; background:rgba(255,255,255,0.65); border-radius:var(--radius);
+  }
+
+  .study-log-row{border-top:1px solid var(--navy-line); padding:10px 0;}
+  .study-log-row:first-child{border-top:none;}
+  .study-log-row .sl-fields{display:flex; gap:6px; margin-bottom:6px;}
+  .study-log-row input.sl-subject, .study-log-row input.sl-material{width:50%; text-align:left; font-size:13px;}
+  .sl-minutes-row{display:flex; align-items:center; gap:8px;}
+  .sl-minutes-row input.sl-minutes{width:64px;}
+  .sl-remove{margin-left:auto; background:none; border:none; color:var(--hanko); cursor:pointer; font-size:15px;}
+
+  .levelup-overlay{position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:999; display:flex; align-items:center; justify-content:center; animation:fadeIn .25s ease;}
+  .levelup-card{background:#fff; border-radius:24px; padding:36px 28px; text-align:center; animation:levelupPop .5s cubic-bezier(.34,1.56,.64,1); box-shadow:0 20px 60px rgba(0,0,0,0.35); max-width:280px;}
+  .levelup-icon{font-size:48px; margin-bottom:8px;}
+  .levelup-title{font-family:var(--font-display); font-weight:800; font-size:22px; letter-spacing:0.04em; background:linear-gradient(135deg,#FFD700,#FF9F0A); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .levelup-lv{font-family:var(--font-display); font-weight:800; font-size:40px; margin-top:8px;}
+  .levelup-tier{font-family:var(--font-mono); font-size:13px; color:var(--ink-soft); margin-top:2px;}
+  .levelup-close{margin-top:20px; padding:10px 24px; border-radius:12px; border:none; background:var(--navy); color:#fff; font-family:var(--font-display); font-weight:700; cursor:pointer;}
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  @keyframes levelupPop{0%{transform:scale(.4);opacity:0;}60%{transform:scale(1.08);opacity:1;}100%{transform:scale(1);}}
+
   .calc-btn{width:100%; padding:15px; font-family:var(--font-display); font-weight:700; font-size:16px; letter-spacing:0.01em; background:linear-gradient(135deg,#007AFF,#5856D6); color:#fff; border:none; border-radius:14px; cursor:pointer; margin-bottom:10px; box-shadow:0 6px 16px rgba(0,122,255,0.3);}
   .calc-btn:active{transform:scale(0.98);}
   .cancel-btn{width:100%; padding:12px; font-family:var(--font-display); font-weight:600; font-size:13.5px; background:transparent; color:var(--hanko); border:none; border-radius:12px; cursor:pointer; margin-bottom:16px; display:none;}
@@ -191,7 +220,8 @@
   .goal-row:last-child{margin-bottom:0;}
   .goal-text{flex:1; text-align:left; font-family:var(--font-body); font-size:13.5px;}
   .goal-row .switch{flex-shrink:0;}
-  .goal-remove{background:none; border:none; color:var(--hanko); cursor:pointer; font-size:15px; line-height:1; flex-shrink:0;}
+  .goal-remove{background:none; border:none; color:var(--hanko); cursor:pointer; font-size:15px; line-height:1; flex-shrink:0; border-radius:50%; width:26px; height:26px; transition:background .3s, color .3s;}
+  .goal-remove.pressing{background:var(--hanko); color:#fff;}
   .goal-add{width:100%; padding:10px; margin-top:6px; font-family:var(--font-mono); font-weight:700; font-size:12px; border:1px dashed var(--navy-line); background:none; color:var(--navy); border-radius:10px; cursor:pointer;}
   .goal-history{margin-top:4px;}
   .goal-hist-row{display:flex; align-items:center; gap:8px; padding:8px 0; border-top:1px solid var(--navy-line); font-size:12.5px;}
@@ -288,7 +318,7 @@
       <div class="eyebrow">DAILY REPORT</div>
       <h1>今日の成績表</h1>
     </div>
-    <div class="date-badge">日付<input type="date" id="dateInput"></div>
+    <div class="date-badge">日付<input type="date" id="dateInput"><button id="todayBtn" style="display:block; margin-top:4px; width:100%; font-family:var(--font-mono); font-size:10.5px; background:none; border:none; color:var(--navy); font-weight:700; cursor:pointer; padding:0;">今日に戻る</button></div>
   </header>
 
   <div class="level-badge tier-white" id="levelBadge"></div>
@@ -332,8 +362,10 @@
     <div class="card">
       <h2>睡眠 <span class="cat-score" id="cs-sleep">— / 100</span></h2>
       <div class="row"><label>起床時刻</label><div><input type="time" id="wake"></div></div>
-      <div class="wheel-value-label" id="sleep-label" style="margin-top:12px;">0時間</div>
+      <div class="wheel-value-label" id="sleep-label" style="margin-top:12px;">0時間0分</div>
       <div class="wheel-outer" id="wheel-sleep"></div>
+      <button class="decide-btn" id="sleepDecideBtn">✓ この時間で決定</button>
+      <div class="decide-note" id="sleepDecideNote"></div>
       <div class="hint" id="sleepHint">30分ズレるごとにそれぞれ10点減点（各50点）。</div>
     </div>
 
@@ -341,6 +373,8 @@
       <h2>スマホ <span class="cat-score" id="cs-phone">— / 100</span></h2>
       <div class="wheel-value-label" id="sns-label">0分</div>
       <div class="wheel-outer" id="wheel-sns"></div>
+      <button class="decide-btn" id="snsDecideBtn">✓ この時間で決定</button>
+      <div class="decide-note" id="snsDecideNote"></div>
       <div class="hint" id="phoneHint">上限未満なら満点。以降15分ごとに2.5点減点。</div>
     </div>
 
@@ -381,6 +415,7 @@
       <div class="rank-comment" id="rankComment"></div>
       <div class="xp-gain" id="xpGain"></div>
       <div class="breakdown" id="breakdown"></div>
+      <div id="dailyAiReview"></div>
     </div>
   </div>
 
@@ -388,11 +423,36 @@
   <div class="tab-panel" id="panel-study">
     <div class="card">
       <h2>勉強 <span class="cat-score" id="cs-study">— / 100</span></h2>
-      <div class="wheel-value-label" id="study-label">0分</div>
-      <div class="wheel-outer" id="wheel-study"></div>
-      <div class="hint">15分ごとに2.5点。600分(10h)で満点。</div>
-      <div class="sub-h">学習内容メモ</div>
-      <textarea id="studyContent" placeholder="今日やった範囲・単元をメモ"></textarea>
+      <div class="row"><label>今日の合計</label><div style="font-family:var(--font-mono); font-weight:800; font-size:17px;" id="studyTotalLabel">0分</div></div>
+      <div class="row"><label>目標勉強時間</label><div><input type="number" id="set_studyGoal" step="15" min="0"><span class="unit">分</span></div></div>
+      <div class="lv-bar-track" style="margin-top:8px;"><div class="lv-bar-fill" id="studyGoalBar" style="width:0%; background:var(--navy);"></div></div>
+      <div class="hint" id="studyGoalHint"></div>
+      <div class="hint">15分相当ごとに2.5点。600分(10h)で満点。</div>
+    </div>
+
+    <div class="card locked-card" id="studyLogCard">
+      <h2>科目・参考書ごとの記録</h2>
+      <div id="studyLogList"></div>
+      <button class="goal-add" id="studyLogAddBtn" style="margin-top:10px;">＋ 記録を追加</button>
+    </div>
+
+    <div class="card" id="studyTaskCard">
+      <h2>目標勉強タスク</h2>
+      <div class="todo-add">
+        <input type="text" id="studyTaskInput" placeholder="タスクを入力">
+        <input type="number" id="studyTaskEst" placeholder="分" style="width:60px;">
+        <button id="studyTaskAddBtn">追加</button>
+      </div>
+      <div id="studyTaskList"></div>
+    </div>
+
+    <div class="card">
+      <h2>勉強時間の推移</h2>
+      <div class="report-toggle">
+        <button class="active" id="studyRepWeek">週間</button>
+        <button id="studyRepMonth">月間</button>
+      </div>
+      <div id="studyChartBody"></div>
     </div>
   </div>
 
@@ -572,7 +632,8 @@ window.storage = {
 
 const $ = id => document.getElementById(id);
 const DIARY_TEMPLATE = '✅ 今日の良かったところ\n\n\n⚠️ 反省する点\n\n\n🔧 次への対策\n\n\n💭 今日ひとこと\n';
-const todayStr = () => new Date().toISOString().slice(0,10);
+function fmtDateLocal(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+const todayStr = () => fmtDateLocal(new Date());
 const clamp = (v,lo,hi) => Math.max(lo, Math.min(hi, v));
 const root = document.documentElement;
 
@@ -625,14 +686,12 @@ function buildWheel(containerId, values, formatFn, initial, onChange, labelEl){
     }
   };
 }
-const STUDY_VALUES = []; for(let m=0;m<=720;m+=15) STUDY_VALUES.push(m);
-const SLEEP_VALUES = []; for(let h=0;h<=12;h+=0.5) SLEEP_VALUES.push(Math.round(h*10)/10);
-const SNS_VALUES = []; for(let m=0;m<=360;m+=15) SNS_VALUES.push(m);
-const fmtStudy = m => `${m}分`;
-const fmtSleep = h => `${h}時間`;
+const SLEEP_MIN_VALUES = []; for(let m=0;m<=720;m+=1) SLEEP_MIN_VALUES.push(m);
+const SNS_VALUES = []; for(let m=0;m<=360;m+=1) SNS_VALUES.push(m);
+const fmtSleepMin = m => `${Math.floor(m/60)}時間${m%60}分`;
 const fmtSns = m => `${m}分`;
-let wheelValues = { study:0, sleep:0, sns:0 };
-let studyWheel, sleepWheel, snsWheel;
+let wheelValues = { sleep:0, sns:0 };
+let sleepWheel, snsWheel;
 
 /* ================= THEME ================= */
 function defaultUiSettings(){ return { navy:'#007AFF', hanko:'#FF3B30', paper:'#F2F2F7', font:'ios', density:'comfortable' }; }
@@ -695,7 +754,7 @@ $('themeToggle').addEventListener('click', () => {
   body.style.display = open ? 'none' : 'block';
   $('themeChevron').textContent = open ? '▾' : '▴';
 });
-function defaultSettings(){ return { sleepTarget:7, wakeTarget:'06:00', snsLimit:120, strictMode:false, strictModeEnabledAt:null }; }
+function defaultSettings(){ return { sleepTarget:7, wakeTarget:'06:00', snsLimit:120, strictMode:false, strictModeEnabledAt:null, studyGoalMinutes:360 }; }
 let currentSettings = defaultSettings();
 async function loadSettings(){
   try{ const r = await window.storage.get('settings', false); if(r && r.value) return { ...defaultSettings(), ...JSON.parse(r.value) }; }catch(e){}
@@ -705,7 +764,7 @@ async function saveSettings(s){ try{ await window.storage.set('settings', JSON.s
 
 function defaultEntry(date){
   return {
-    date, study:null, studyContent:'', sleep:null, wake:'', sns:null,
+    date, study:0, studyLog:[], studyTasks:[], sleep:null, wake:'', sns:null,
     life:{ m_teeth:false,m_supp:false,m_wash:false,m_skin:false,m_med:false, n_med:false,
            e_teeth:false,e_floss:false,e_med:false,e_supp:false,e_bath:false,e_wash:false,e_skin:false },
     self:{ late:false, forgot:false }, diaryText:'', todos:[], scores:null
@@ -779,8 +838,14 @@ function rankColor(rank){
     case 'D': return '#FF6482'; default: return '#FF3B30';
   }
 }
+function studyLogTotal(log){ return (log||[]).reduce((s,r)=>s+(parseFloat(r.minutes)||0),0); }
+function studyLogSummary(entry){
+  const log = entry.studyLog || [];
+  if(!log.length) return '記入なし';
+  return log.map(r => `${r.subject||'?'}${r.material?'('+r.material+')':''}:${r.minutes}分`).join(', ');
+}
 function computeAll(entry, settings){
-  const study = studyScore(entry.study);
+  const study = studyScore(studyLogTotal(entry.studyLog));
   const sleep = sleepScore(entry.sleep, entry.wake, settings);
   const phone = phoneScore(entry.sns, settings);
   const life = lifeScoreOf(entry.life);
@@ -804,10 +869,35 @@ function tierOf(level){
   return {name:'赤', key:'red'};
 }
 function tierIcon(key){ return {white:'○', pink:'✿', orange:'✦', blue:'❖', red:'♛'}[key]; }
+function showLevelUpCelebration(level){
+  const tier = tierOf(level);
+  const overlay = document.createElement('div');
+  overlay.className = 'levelup-overlay';
+  overlay.innerHTML = `
+    <div class="levelup-card tier-${tier.key}">
+      <div class="levelup-icon">${tierIcon(tier.key)}</div>
+      <div class="levelup-title">LEVEL UP!</div>
+      <div class="levelup-lv">Lv.${level}</div>
+      <div class="levelup-tier">${tier.name}帯</div>
+      <button class="levelup-close">閉じる</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('.levelup-close').addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', (e) => { if(e.target === overlay) overlay.remove(); });
+  setTimeout(() => { if(overlay.parentNode) overlay.remove(); }, 6000);
+}
 function computeTotalXP(allEntries){ let total=0; for(const e of allEntries){ if(e.scores) total += dailyXP(e.scores); } return total; }
-async function updateLevelBadge(){
+const GOAL_XP = { small:500, medium:10000, large:100000 };
+async function computeGoalsBonusXP(){
+  const g = goalsData || await loadGoals();
+  return ['small','medium','large'].reduce((sum,cat) => sum + (g[cat]||[]).filter(x=>x.done).length * GOAL_XP[cat], 0);
+}
+async function computeGrandTotalXP(){
   const all = await loadAllEntries();
-  const totalXP = computeTotalXP(all);
+  return computeTotalXP(all) + await computeGoalsBonusXP();
+}
+async function updateLevelBadge(){
+  const totalXP = await computeGrandTotalXP();
   const { level, remaining, nextCost } = levelFromXP(totalXP);
   const tier = tierOf(level);
   const badge = $('levelBadge');
@@ -829,6 +919,7 @@ function resetResultUI(){
   $('result').classList.remove('show');
   $('hanko').classList.remove('stamp');
   $('cancelBtn').style.display = 'none';
+  $('dailyAiReview').innerHTML = '';
   $('cs-study').textContent='— / 100'; $('cs-sleep').textContent='— / 100';
   $('cs-phone').textContent='— / 100'; $('cs-life').textContent='— / 100'; $('cs-self').textContent='— / 100';
 }
@@ -859,11 +950,10 @@ function renderResultFromScores(scores, animate){
   $('xpGain').textContent = '';
 }
 function bindEntryToForm(entry){
-  studyWheel = buildWheel('wheel-study', STUDY_VALUES, fmtStudy, entry.study ?? 0, v => wheelValues.study = v, $('study-label'));
-  sleepWheel = buildWheel('wheel-sleep', SLEEP_VALUES, fmtSleep, entry.sleep ?? 7, v => wheelValues.sleep = v, $('sleep-label'));
+  sleepWheel = buildWheel('wheel-sleep', SLEEP_MIN_VALUES, fmtSleepMin, Math.round((entry.sleep ?? 7)*60), v => wheelValues.sleep = v/60, $('sleep-label'));
   snsWheel   = buildWheel('wheel-sns', SNS_VALUES, fmtSns, entry.sns ?? 0, v => wheelValues.sns = v, $('sns-label'));
-  wheelValues = { study: entry.study ?? 0, sleep: entry.sleep ?? 7, sns: entry.sns ?? 0 };
-  $('studyContent').value = entry.studyContent ?? '';
+  wheelValues = { sleep: entry.sleep ?? 7, sns: entry.sns ?? 0 };
+  $('sleepDecideNote').textContent = ''; $('snsDecideNote').textContent = '';
   $('wake').value = entry.wake ?? '';
   lifeIds.forEach(id => $('life_'+id).checked = !!entry.life[id]);
   $('sm_late').checked = !!entry.self.late;
@@ -872,10 +962,11 @@ function bindEntryToForm(entry){
   resetResultUI();
   if(entry.scores){ renderResultFromScores(entry.scores, false); }
   renderTodos();
+  renderStudyLog();
+  renderStudyTasks();
 }
 function readFormIntoEntry(){
-  currentEntry.study = wheelValues.study;
-  currentEntry.studyContent = $('studyContent').value;
+  currentEntry.study = studyLogTotal(currentEntry.studyLog);
   currentEntry.sleep = wheelValues.sleep;
   currentEntry.wake = $('wake').value;
   currentEntry.sns = wheelValues.sns;
@@ -883,7 +974,7 @@ function readFormIntoEntry(){
   currentEntry.self.late = $('sm_late').checked;
   currentEntry.self.forgot = $('sm_forgot').checked;
 }
-function dateAdd(dateStr, days){ const d = new Date(dateStr+'T00:00:00'); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); }
+function dateAdd(dateStr, days){ const d = new Date(dateStr+'T00:00:00'); d.setDate(d.getDate()+days); return fmtDateLocal(d); }
 async function updateStreakBadge(){
   const all = await loadAllEntries();
   const scored = new Set(all.filter(e=>e.scores).map(e=>e.date));
@@ -912,6 +1003,8 @@ async function updateStudyStreakBadge(){
 }
 
 $('calcBtn').addEventListener('click', async () => {
+  const prevGrandXP = await computeGrandTotalXP();
+
   readFormIntoEntry();
   const scores = computeAll(currentEntry, currentSettings);
   currentEntry.scores = scores;
@@ -933,7 +1026,21 @@ $('calcBtn').addEventListener('click', async () => {
   $('saveNote').textContent = '保存しました';
   setTimeout(()=> $('saveNote').textContent='', 1800);
   await updateStreakBadge(); await updateStudyStreakBadge();
-  await updateLevelBadge();
+  const newGrandXP = await updateLevelBadge();
+
+  const prevLevel = levelFromXP(prevGrandXP).level;
+  const newLevel = levelFromXP(newGrandXP).level;
+  if(newLevel > prevLevel) showLevelUpCelebration(newLevel);
+
+  const reviewBox = $('dailyAiReview');
+  reviewBox.innerHTML = '<div class="hint" style="margin-top:14px;">🤖 AIが今日のレビューを書いています…</div>';
+  try{
+    const text = await callClaudeAPI(buildDailyPrompt(currentEntry, newLevel), 500);
+    reviewBox.innerHTML = `<div class="sub-h" style="margin-top:14px;">🤖 今日のAIレビュー</div><div class="ai-text">${(text || 'レビューの生成に失敗しました。').replace(/</g,'&lt;')}</div>`;
+  }catch(err){
+    console.error('daily review failed', err);
+    reviewBox.innerHTML = '<div class="empty" style="margin-top:14px;">AIレビューの取得に失敗しました。</div>';
+  }
 });
 
 $('cancelBtn').addEventListener('click', async () => {
@@ -944,6 +1051,159 @@ $('cancelBtn').addEventListener('click', async () => {
   await updateStreakBadge(); await updateStudyStreakBadge();
   await updateLevelBadge();
 });
+
+/* ================= study tab ================= */
+function renderStudyLog(){
+  const list = $('studyLogList');
+  const log = currentEntry.studyLog || [];
+  if(!log.length){
+    list.innerHTML = '<div class="empty">まだ記録がありません。「＋ 記録を追加」から追加してください。</div>';
+  } else {
+    list.innerHTML = log.map(r => `
+      <div class="study-log-row" data-id="${r.id}">
+        <div class="sl-fields">
+          <input type="text" class="sl-subject" data-id="${r.id}" placeholder="科目 (例:英語)" value="${escapeAttr(r.subject||'')}">
+          <input type="text" class="sl-material" data-id="${r.id}" placeholder="参考書" value="${escapeAttr(r.material||'')}">
+        </div>
+        <div class="sl-minutes-row">
+          <input type="number" class="sl-minutes" data-id="${r.id}" min="0" step="1" value="${r.minutes||0}">
+          <span class="unit">分</span>
+          <button class="sl-remove" data-id="${r.id}">✕</button>
+        </div>
+      </div>`).join('');
+  }
+  updateStudyTotals();
+}
+function updateStudyTotals(){
+  const total = studyLogTotal(currentEntry.studyLog);
+  $('studyTotalLabel').textContent = `${total}分`;
+  const goal = currentSettings.studyGoalMinutes || 360;
+  const pct = clamp((total/goal)*100, 0, 100);
+  $('studyGoalBar').style.width = pct + '%';
+  $('studyGoalHint').textContent = `目標 ${goal}分中 ${total}分（${Math.round(pct)}%）`;
+}
+$('studyLogAddBtn').addEventListener('click', async () => {
+  currentEntry.studyLog = currentEntry.studyLog || [];
+  currentEntry.studyLog.push({ id: genId(), subject:'', material:'', minutes:0 });
+  renderStudyLog();
+  await persistEntry(currentEntry);
+});
+$('studyLogList').addEventListener('change', async (e) => {
+  const id = e.target.dataset.id;
+  const row = (currentEntry.studyLog||[]).find(r=>r.id===id);
+  if(!row) return;
+  if(e.target.classList.contains('sl-subject')) row.subject = e.target.value;
+  else if(e.target.classList.contains('sl-material')) row.material = e.target.value;
+  else if(e.target.classList.contains('sl-minutes')) row.minutes = parseFloat(e.target.value) || 0;
+  updateStudyTotals();
+  await persistEntry(currentEntry);
+});
+$('studyLogList').addEventListener('click', async (e) => {
+  if(!e.target.classList.contains('sl-remove')) return;
+  const id = e.target.dataset.id;
+  currentEntry.studyLog = (currentEntry.studyLog||[]).filter(r=>r.id!==id);
+  renderStudyLog();
+  await persistEntry(currentEntry);
+});
+
+function renderStudyTasks(){
+  const list = $('studyTaskList');
+  const tasks = currentEntry.studyTasks || [];
+  if(!tasks.length){
+    list.innerHTML = '<div class="empty">目標勉強タスクはまだありません。</div>';
+  } else {
+    list.innerHTML = tasks.map(t => `
+      <div class="todo-item ${t.done?'done':''}">
+        <label class="check-item" style="margin:0;"><input type="checkbox" class="stask-check" data-id="${t.id}" ${t.done?'checked':''}><span class="switch"></span></label>
+        <span>${escapeHtml(t.text)} <span class="unit">(${t.estMinutes||0}分目安)</span></span>
+        <button class="stask-del" data-id="${t.id}">✕</button>
+      </div>`).join('');
+  }
+}
+$('studyTaskAddBtn').addEventListener('click', async () => {
+  const val = $('studyTaskInput').value.trim();
+  if(!val) return;
+  const est = parseFloat($('studyTaskEst').value) || 0;
+  currentEntry.studyTasks = currentEntry.studyTasks || [];
+  currentEntry.studyTasks.push({ id: genId(), text: val, estMinutes: est, done:false });
+  $('studyTaskInput').value=''; $('studyTaskEst').value='';
+  renderStudyTasks();
+  await persistEntry(currentEntry);
+});
+$('studyTaskInput').addEventListener('keydown', e => { if(e.key==='Enter') $('studyTaskAddBtn').click(); });
+$('studyTaskList').addEventListener('click', async (e) => {
+  if(e.target.classList.contains('stask-del')){
+    currentEntry.studyTasks = currentEntry.studyTasks.filter(t=>t.id!==e.target.dataset.id);
+    renderStudyTasks(); await persistEntry(currentEntry);
+  }
+});
+$('studyTaskList').addEventListener('change', async (e) => {
+  if(e.target.classList.contains('stask-check')){
+    const t = currentEntry.studyTasks.find(t=>t.id===e.target.dataset.id);
+    if(t) t.done = e.target.checked;
+    renderStudyTasks(); await persistEntry(currentEntry);
+  }
+});
+
+$('sleepDecideBtn').addEventListener('click', () => {
+  $('sleepDecideNote').textContent = `✓ ${fmtSleepMin(Math.round(wheelValues.sleep*60))}で決定しました`;
+  setTimeout(()=> $('sleepDecideNote').textContent='', 2200);
+});
+$('snsDecideBtn').addEventListener('click', () => {
+  $('snsDecideNote').textContent = `✓ ${fmtSns(wheelValues.sns)}で決定しました`;
+  setTimeout(()=> $('snsDecideNote').textContent='', 2200);
+});
+
+$('set_studyGoal').addEventListener('change', async () => {
+  currentSettings = { ...currentSettings, studyGoalMinutes: parseFloat($('set_studyGoal').value) || 360 };
+  await saveSettings(currentSettings);
+  updateStudyTotals();
+});
+
+let studyReportMode = 'week';
+$('studyRepWeek').addEventListener('click', () => { studyReportMode='week'; $('studyRepWeek').classList.add('active'); $('studyRepMonth').classList.remove('active'); renderStudyReport('week'); });
+$('studyRepMonth').addEventListener('click', () => { studyReportMode='month'; $('studyRepMonth').classList.add('active'); $('studyRepWeek').classList.remove('active'); renderStudyReport('month'); });
+
+async function renderStudyReport(mode){
+  const anchor = $('dateInput').value || todayStr();
+  const all = await loadAllEntries();
+  let start, end, label;
+  if(mode === 'week'){ start = dateAdd(anchor, -6); end = anchor; label = `${start} 〜 ${end}`; }
+  else {
+    const d = new Date(anchor+'T00:00:00'); const y=d.getFullYear(), m=d.getMonth();
+    start = fmtDateLocal(new Date(y,m,1)); end = fmtDateLocal(new Date(y,m+1,0));
+    label = `${y}年${m+1}月`;
+  }
+  const inRange = all.filter(e => e.date>=start && e.date<=end && e.scores).sort((a,b)=>a.date.localeCompare(b.date));
+  const body = $('studyChartBody');
+  if(!inRange.length){ body.innerHTML = `<div class="empty">対象期間（${label}）に記録がありません。</div>`; return; }
+  const minutesArr = inRange.map(e => studyLogTotal(e.studyLog));
+  const maxY = Math.max(currentSettings.studyGoalMinutes || 360, ...minutesArr, 60);
+  const totalMinutes = minutesArr.reduce((a,b)=>a+b,0);
+  const avgMinutes = Math.round(totalMinutes/inRange.length);
+
+  const subjectTotals = {};
+  inRange.forEach(e => (e.studyLog||[]).forEach(r => {
+    const key = r.subject && r.subject.trim() ? r.subject.trim() : '(未分類)';
+    subjectTotals[key] = (subjectTotals[key]||0) + (parseFloat(r.minutes)||0);
+  }));
+  const subjectList = Object.entries(subjectTotals).sort((a,b)=>b[1]-a[1]);
+
+  body.innerHTML = `
+    <div class="hint" style="margin-bottom:10px;">対象期間: ${label}（${inRange.length}日分）</div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="l">合計</div><div class="v">${Math.round(totalMinutes/60*10)/10}h</div></div>
+      <div class="stat-box"><div class="l">1日平均</div><div class="v">${avgMinutes}分</div></div>
+    </div>
+    ${svgLineChart(minutesArr, '#007AFF', maxY)}
+    <div class="sub-h" style="margin-top:16px;">科目別の合計</div>
+    ${subjectList.length ? subjectList.map(([subj,mins]) => `
+      <div class="hist-row"><div class="d">${escapeHtml(subj)}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${clamp((mins/subjectList[0][1])*100,4,100)}%;background:#007AFF"></div></div>
+        <div class="s">${mins}分</div></div>
+    `).join('') : '<div class="empty">科目データがありません。</div>'}
+  `;
+}
 
 /* ================= todo tab ================= */
 function renderTodos(){
@@ -1008,7 +1268,7 @@ const GOAL_META = {
 };
 function renderGoalsTab(){
   if(!goalsData) return;
-  let html = '';
+  let html = '<div class="hint" style="margin-bottom:14px;">✕は長押し（0.6秒）で削除できます。誤タップ防止のためです。達成すると小=500XP・中=10,000XP・大=100,000XPのボーナスが付きます。</div>';
   ['large','medium','small'].forEach(cat => {
     const meta = GOAL_META[cat];
     const items = goalsData[cat];
@@ -1044,16 +1304,31 @@ $('goalsBody').addEventListener('click', async (e) => {
   if(e.target.classList.contains('goal-add')){
     goalsData[e.target.dataset.cat].push({ id: genId(), text:'', done:false, completedAt:null });
     await saveGoals(); renderGoalsTab();
-  } else if(e.target.classList.contains('goal-remove')){
-    const item = goalsData[cat].find(g=>g.id===id);
-    if(item && item.text.trim().length>0){ if(!confirm('この目標を削除しますか？')) return; }
-    goalsData[cat] = goalsData[cat].filter(g=>g.id!==id);
-    await saveGoals(); renderGoalsTab();
   } else if(e.target.classList.contains('goal-undo')){
     const item = goalsData[cat].find(g=>g.id===id);
     if(item){ item.done=false; item.completedAt=null; }
-    await saveGoals(); renderGoalsTab();
+    await saveGoals(); renderGoalsTab(); await updateLevelBadge();
   }
+});
+let goalPressTimer = null, goalPressCat = null, goalPressId = null;
+$('goalsBody').addEventListener('pointerdown', (e) => {
+  if(!e.target.classList.contains('goal-remove')) return;
+  goalPressCat = e.target.dataset.cat; goalPressId = e.target.dataset.id;
+  e.target.classList.add('pressing');
+  goalPressTimer = setTimeout(async () => {
+    e.target.classList.remove('pressing');
+    goalPressTimer = null;
+    if(confirm('この目標を削除しますか？')){
+      goalsData[goalPressCat] = goalsData[goalPressCat].filter(g=>g.id!==goalPressId);
+      await saveGoals(); renderGoalsTab();
+    }
+  }, 600);
+});
+['pointerup','pointerleave','pointercancel'].forEach(evt => {
+  $('goalsBody').addEventListener(evt, (e) => {
+    if(goalPressTimer){ clearTimeout(goalPressTimer); goalPressTimer = null; }
+    if(e.target && e.target.classList && e.target.classList.contains('goal-remove')) e.target.classList.remove('pressing');
+  });
 });
 $('goalsBody').addEventListener('change', async (e) => {
   const cat = e.target.dataset.cat, id = e.target.dataset.id;
@@ -1063,8 +1338,14 @@ $('goalsBody').addEventListener('change', async (e) => {
     await saveGoals();
   } else if(e.target.classList.contains('goal-check')){
     const item = goalsData[cat].find(g=>g.id===id);
-    if(item && e.target.checked){ item.done = true; item.completedAt = Date.now(); }
-    await saveGoals(); renderGoalsTab();
+    if(item && e.target.checked){
+      const prevGrandXP = await computeGrandTotalXP();
+      item.done = true; item.completedAt = Date.now();
+      await saveGoals(); renderGoalsTab();
+      const newGrandXP = await updateLevelBadge();
+      const prevLevel = levelFromXP(prevGrandXP).level, newLevel = levelFromXP(newGrandXP).level;
+      if(newLevel > prevLevel) showLevelUpCelebration(newLevel);
+    }
   }
 });
 
@@ -1083,7 +1364,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
     btn.classList.add('active');
     $('panel-'+btn.dataset.tab).classList.add('active');
-    if(btn.dataset.tab === 'study' && studyWheel) studyWheel.setValue(wheelValues.study);
+    if(btn.dataset.tab === 'study'){ renderStudyLog(); renderStudyTasks(); renderStudyReport(studyReportMode); }
     if(btn.dataset.tab === 'diary') renderReport(currentReportMode);
     if(btn.dataset.tab === 'calendar') renderCalendar();
     if(btn.dataset.tab === 'options') renderTitles();
@@ -1094,6 +1375,12 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 /* ================= date change ================= */
 $('dateInput').addEventListener('change', async () => {
   currentEntry = await loadEntry($('dateInput').value);
+  bindEntryToForm(currentEntry);
+  await updateStreakBadge(); await updateStudyStreakBadge();
+});
+$('todayBtn').addEventListener('click', async () => {
+  $('dateInput').value = todayStr();
+  currentEntry = await loadEntry(todayStr());
   bindEntryToForm(currentEntry);
   await updateStreakBadge(); await updateStudyStreakBadge();
 });
@@ -1126,7 +1413,7 @@ async function renderReport(mode){
   if(mode === 'week'){ start = dateAdd(anchor, -6); end = anchor; label = `${start} 〜 ${end}`; }
   else {
     const d = new Date(anchor+'T00:00:00'); const y=d.getFullYear(), m=d.getMonth();
-    start = new Date(y,m,1).toISOString().slice(0,10); end = new Date(y,m+1,0).toISOString().slice(0,10);
+    start = fmtDateLocal(new Date(y,m,1)); end = fmtDateLocal(new Date(y,m+1,0));
     label = `${y}年${m+1}月`;
   }
   const inRange = all.filter(e => e.date>=start && e.date<=end && e.scores);
@@ -1144,7 +1431,7 @@ async function renderReport(mode){
   const worst = inRange.reduce((a,e)=> e.scores.total<a.scores.total?e:a);
   const ovAvg = overallRank(avgTotal);
   const asc = inRange.slice().sort((a,b)=>a.date.localeCompare(b.date));
-  const studyNotes = inRange.filter(e => e.studyContent && e.studyContent.trim().length>0).slice().sort((a,b)=>b.date.localeCompare(a.date));
+  const studyDays = inRange.filter(e => (e.studyLog||[]).length>0).slice().sort((a,b)=>b.date.localeCompare(a.date));
 
   body.innerHTML = `
     <div class="hint" style="margin-bottom:12px;">対象期間: ${label}（記録 ${n}日分）</div>
@@ -1175,8 +1462,8 @@ async function renderReport(mode){
         <div class="bar-track"><div class="bar-fill" style="width:${(e.scores.total/500)*100}%;background:${rankColor(r)}"></div></div>
         <div class="s">${e.scores.total}</div></div>`;
     }).join('')}
-    <div class="sub-h" style="margin-top:18px;">学習内容メモ まとめ</div>
-    <div class="study-log">${studyNotes.length ? studyNotes.map(e => `<div class="study-log-item"><div class="d">${e.date}</div>${e.studyContent}</div>`).join('') : '<div class="empty">この期間の学習内容メモはありません。</div>'}</div>
+    <div class="sub-h" style="margin-top:18px;">学習記録 まとめ</div>
+    <div class="study-log">${studyDays.length ? studyDays.map(e => `<div class="study-log-item"><div class="d">${e.date}</div>${escapeHtml(studyLogSummary(e))}</div>`).join('') : '<div class="empty">この期間の学習記録はありません。</div>'}</div>
   `;
 }
 
@@ -1415,10 +1702,10 @@ $('ssReadBtn').addEventListener('click', async () => {
 
     const applied = [];
     if(parsed.studyMinutes != null){
-      const rounded = Math.round(parsed.studyMinutes/15)*15;
-      const clamped = clamp(rounded, 0, 720);
-      wheelValues.study = clamped;
-      if(studyWheel) studyWheel.setValue(clamped);
+      const clamped = clamp(Math.round(parsed.studyMinutes), 0, 720);
+      currentEntry.studyLog = (currentEntry.studyLog||[]).filter(r=>r.id!=='ai-read');
+      currentEntry.studyLog.push({ id:'ai-read', subject:'AI読み取り', material:'', minutes: clamped });
+      renderStudyLog();
       applied.push(`勉強:${clamped}分`);
     }
     if(parsed.wakeTime){
@@ -1426,12 +1713,12 @@ $('ssReadBtn').addEventListener('click', async () => {
       applied.push(`起床:${parsed.wakeTime}`);
     }
     if(parsed.snsMinutes != null){
-      const rounded = Math.round(parsed.snsMinutes/15)*15;
-      const clamped = clamp(rounded, 0, 360);
+      const clamped = clamp(Math.round(parsed.snsMinutes), 0, 360);
       wheelValues.sns = clamped;
       if(snsWheel) snsWheel.setValue(clamped);
       applied.push(`SNS:${clamped}分`);
     }
+    await persistEntry(currentEntry);
     $('ssResultHint').textContent = applied.length ? `読み取り結果を反映しました（${applied.join(' / ')}）。内容を確認して「採点する」を押してください。` : '画像から値を読み取れませんでした。手入力で調整してください。';
   }catch(err){
     console.error('screenshot read failed', err);
@@ -1440,7 +1727,44 @@ $('ssReadBtn').addEventListener('click', async () => {
   btn.disabled = false; btn.textContent = '🤖 AIに読み取らせる';
 });
 
-/* ================= AI report ================= */
+/* ================= AI report (shared helpers) ================= */
+async function callClaudeAPI(prompt, maxTokens){
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: maxTokens || 1000, messages: [{ role: "user", content: prompt }] })
+  });
+  const data = await response.json();
+  return (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
+}
+function buildDailyPrompt(entry, level){
+  const r = overallRank(entry.scores.total).rank;
+  const note = studyLogSummary(entry);
+  const todosLine = entry.todos.length ? `Todo ${entry.todos.filter(t=>t.done).length}/${entry.todos.length}完了` : 'Todoなし';
+  const diaryLine = (entry.diaryText||'').trim() && entry.diaryText.trim() !== DIARY_TEMPLATE.trim() ? '日記あり' : '日記なし';
+  return `あなたは受験生の自己管理を見守るコーチです。以下はユーザーの${entry.date}（1日分）の記録です。
+
+総合${entry.scores.total}点(${r})｜勉強${entry.scores.study} 睡眠${entry.scores.sleep} スマホ${entry.scores.phone} 生活${entry.scores.life} 自己管理${entry.scores.self}｜学習内容:${note}｜${todosLine}｜${diaryLine}
+
+睡眠目標:${currentSettings.sleepTarget}時間・起床目標${currentSettings.wakeTarget}、SNS上限:${currentSettings.snsLimit}分。現在レベル${level}。
+
+この1日の記録について、良かった点・気になる点を短く指摘し、明日すぐ意識できる改善アクションを1〜2個、日本語で提案してください。厳しすぎず、甘やかしすぎない、対等なコーチのトーンで。200〜300字程度でまとめてください。`;
+}
+function buildWeeklyPrompt(asc, level){
+  const lines = asc.map(e => {
+    const r = overallRank(e.scores.total).rank;
+    const note = studyLogSummary(e).slice(0,50);
+    return `${e.date}｜総合${e.scores.total}(${r})｜勉強${e.scores.study} 睡眠${e.scores.sleep} スマホ${e.scores.phone} 生活${e.scores.life} 自己管理${e.scores.self}｜学習内容:${note}`;
+  }).join('\n');
+  return `あなたは受験生の自己管理を見守るコーチです。以下は直近${asc.length}日分の生活・学習記録です（古い日付順）。
+
+${lines}
+
+睡眠目標:${currentSettings.sleepTarget}時間・起床目標${currentSettings.wakeTarget}、SNS上限:${currentSettings.snsLimit}分。現在レベル${level}。
+
+この記録から読み取れる傾向（良い点・気になる点）を短く指摘し、次の1週間で意識すると良い具体的な改善アクションを2〜3個、日本語で提案してください。厳しすぎず、甘やかしすぎない、対等なコーチのトーンで。300〜400字程度でまとめてください。`;
+}
+
+/* ================= AI report tab ================= */
 let aiReportMode = 'day';
 $('aiModeDay').addEventListener('click', () => { aiReportMode='day'; $('aiModeDay').classList.add('active'); $('aiModeWeek').classList.remove('active'); $('aiReportBody').style.display='none'; });
 $('aiModeWeek').addEventListener('click', () => { aiReportMode='week'; $('aiModeWeek').classList.add('active'); $('aiModeDay').classList.remove('active'); $('aiReportBody').style.display='none'; });
@@ -1452,7 +1776,7 @@ $('aiReportBtn').addEventListener('click', async () => {
   out.innerHTML = '<div class="hint">AIが記録を確認しています…</div>';
   try{
     const all = await loadAllEntries();
-    const totalXP = computeTotalXP(all);
+    const totalXP = await computeGrandTotalXP();
     const { level } = levelFromXP(totalXP);
     let prompt;
 
@@ -1463,17 +1787,7 @@ $('aiReportBtn').addEventListener('click', async () => {
         out.innerHTML = '<div class="empty">選択中の日はまだ採点されていません。記録タブで採点してから試してください。</div>';
         btn.disabled = false; btn.textContent = '🤖 AIレポートを見る'; return;
       }
-      const r = overallRank(entry.scores.total).rank;
-      const note = (entry.studyContent || '記入なし').replace(/\n/g,' ');
-      const todosLine = entry.todos.length ? `Todo ${entry.todos.filter(t=>t.done).length}/${entry.todos.length}完了` : 'Todoなし';
-      const diaryLine = (entry.diaryText||'').trim() && entry.diaryText.trim() !== DIARY_TEMPLATE.trim() ? '日記あり' : '日記なし';
-      prompt = `あなたは受験生の自己管理を見守るコーチです。以下はユーザーの${entry.date}（1日分）の記録です。
-
-総合${entry.scores.total}点(${r})｜勉強${entry.scores.study} 睡眠${entry.scores.sleep} スマホ${entry.scores.phone} 生活${entry.scores.life} 自己管理${entry.scores.self}｜学習内容:${note}｜${todosLine}｜${diaryLine}
-
-睡眠目標:${currentSettings.sleepTarget}時間・起床目標${currentSettings.wakeTarget}、SNS上限:${currentSettings.snsLimit}分。現在レベル${level}。
-
-この1日の記録について、良かった点・気になる点を短く指摘し、明日すぐ意識できる改善アクションを1〜2個、日本語で提案してください。厳しすぎず、甘やかしすぎない、対等なコーチのトーンで。200〜300字程度でまとめてください。`;
+      prompt = buildDailyPrompt(entry, level);
     } else {
       const scored = all.filter(e => e.scores).sort((a,b) => b.date.localeCompare(a.date)).slice(0, 14);
       if(!scored.length){
@@ -1481,26 +1795,10 @@ $('aiReportBtn').addEventListener('click', async () => {
         btn.disabled = false; btn.textContent = '🤖 AIレポートを見る'; return;
       }
       const asc = scored.slice().sort((a,b) => a.date.localeCompare(b.date));
-      const lines = asc.map(e => {
-        const r = overallRank(e.scores.total).rank;
-        const note = (e.studyContent || '記入なし').replace(/\n/g,' ').slice(0,50);
-        return `${e.date}｜総合${e.scores.total}(${r})｜勉強${e.scores.study} 睡眠${e.scores.sleep} スマホ${e.scores.phone} 生活${e.scores.life} 自己管理${e.scores.self}｜学習内容:${note}`;
-      }).join('\n');
-      prompt = `あなたは受験生の自己管理を見守るコーチです。以下は直近${asc.length}日分の生活・学習記録です（古い日付順）。
-
-${lines}
-
-睡眠目標:${currentSettings.sleepTarget}時間・起床目標${currentSettings.wakeTarget}、SNS上限:${currentSettings.snsLimit}分。現在レベル${level}。
-
-この記録から読み取れる傾向（良い点・気になる点）を短く指摘し、次の1週間で意識すると良い具体的な改善アクションを2〜3個、日本語で提案してください。厳しすぎず、甘やかしすぎない、対等なコーチのトーンで。300〜400字程度でまとめてください。`;
+      prompt = buildWeeklyPrompt(asc, level);
     }
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 1000, messages: [{ role: "user", content: prompt }] })
-    });
-    const data = await response.json();
-    const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
+    const text = await callClaudeAPI(prompt, 1000);
     out.innerHTML = `<h2>🤖 AIからのアドバイス</h2><div class="ai-text">${(text || 'アドバイスの生成に失敗しました。もう一度お試しください。').replace(/</g,'&lt;')}</div>`;
   }catch(err){
     console.error('AI report failed', err);
@@ -1514,10 +1812,10 @@ $('exportBtn').addEventListener('click', async () => {
   const all = await loadAllEntries();
   const scored = all.filter(e=>e.scores).sort((a,b)=>a.date.localeCompare(b.date));
   if(!scored.length){ alert('エクスポートできる記録がありません。'); return; }
-  const header = ['date','total','study','sleep','phone','life','self','rank','xp','studyContent','diaryLength'];
+  const header = ['date','total','study','sleep','phone','life','self','rank','xp','studySummary','diaryLength'];
   const rows = scored.map(e => {
     const r = overallRank(e.scores.total).rank;
-    const note = (e.studyContent||'').replace(/"/g,'""').replace(/\n/g,' ');
+    const note = studyLogSummary(e).replace(/"/g,'""').replace(/\n/g,' ');
     return [e.date, e.scores.total, e.scores.study, e.scores.sleep, e.scores.phone, e.scores.life, e.scores.self, r, dailyXP(e.scores), `"${note}"`, (e.diaryText||'').length].join(',');
   });
   const csv = [header.join(','), ...rows].join('\n');
@@ -1536,12 +1834,13 @@ function strictLockRemainingMs(s){
   return Math.max(0, STRICT_LOCK_MS - (Date.now() - s.strictModeEnabledAt));
 }
 function applyStrictLock(isStrict){
-  $('wheel-study').classList.toggle('locked', isStrict);
+  $('studyLogCard').classList.toggle('locked', isStrict);
   $('wheel-sns').classList.toggle('locked', isStrict);
   $('wake').disabled = isStrict;
 }
 function bindSettingsToForm(s){
   $('set_sleepTarget').value = s.sleepTarget; $('set_wakeTarget').value = s.wakeTarget; $('set_snsLimit').value = s.snsLimit;
+  $('set_studyGoal').value = s.studyGoalMinutes;
   $('set_strictMode').checked = !!s.strictMode;
   $('strictCard').style.display = s.strictMode ? 'block' : 'none';
   applyStrictLock(!!s.strictMode);
